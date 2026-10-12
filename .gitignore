@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Environment & secrets (only the .env.example templates are committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# User uploads: temp files on their way to Cloudinary (keep the folder itself)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Test runs: throwaway databases, logs, screenshots and result JSON (node tests/run.mjs)
+tests/.results/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary & OS files
+tmp/
+temp/
+*.tmp
+.cache/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

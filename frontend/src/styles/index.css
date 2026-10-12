@@ -1,0 +1,309 @@
+@import 'tailwindcss';
+
+/* Dark mode is class-based so users can override their OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/* Brand scales                                                        */
+/* ------------------------------------------------------------------ */
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Nature green: the CampusX brand colour. */
+  --color-leaf-50: #effbf3;
+  --color-leaf-100: #d8f5e2;
+  --color-leaf-200: #b3e9c8;
+  --color-leaf-300: #7fd6a5;
+  --color-leaf-400: #47bc7f;
+  --color-leaf-500: #23a063;
+  --color-leaf-600: #16824f;
+  --color-leaf-700: #146842;
+  --color-leaf-800: #145337;
+  --color-leaf-900: #12442f;
+  --color-leaf-950: #072619;
+
+  /* Warm sun accent: achievements, highlights, celebrations. */
+  --color-sun-100: #fdf1d3;
+  --color-sun-300: #f7cf6b;
+  --color-sun-400: #f3b93d;
+  --color-sun-500: #e39d17;
+  --color-sun-700: #9a5f0c;
+  --color-sun-900: #5c3a09;
+
+  --ease-campus: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Semantic tokens: components use these, never raw hex values.        */
+/* ------------------------------------------------------------------ */
+:root {
+  --cx-canvas: #f4f7f4;
+  --cx-surface: #ffffff;
+  --cx-surface-muted: #edf2ee;
+  --cx-ink: #15201a;
+  --cx-ink-muted: #526258;
+  --cx-ink-subtle: #7f8e85;
+  --cx-line: #e0e8e2;
+  --cx-line-strong: #c8d4cb;
+
+  --cx-primary: #16824f;
+  --cx-primary-hover: #146842;
+  --cx-primary-fg: #ffffff;
+  --cx-primary-soft: #e1f5e8;
+  --cx-primary-soft-fg: #146842;
+
+  --cx-accent-soft: #fdf1d3;
+  --cx-accent-fg: #8a5409;
+
+  --cx-danger: #d14343;
+  --cx-danger-soft: #fdecec;
+  --cx-danger-fg: #a52a2a;
+
+  --cx-focus: rgb(22 130 79 / 0.25);
+  --cx-dot: rgb(21 32 26 / 0.1);
+
+  --cx-shadow-soft: 0 1px 2px rgb(21 32 26 / 0.04), 0 6px 18px -6px rgb(21 32 26 / 0.08);
+  --cx-shadow-lift: 0 2px 4px rgb(21 32 26 / 0.04), 0 18px 36px -14px rgb(21 32 26 / 0.2);
+  --cx-shadow-glow: 0 10px 28px -10px rgb(22 130 79 / 0.55);
+
+  color-scheme: light;
+}
+
+.dark {
+  --cx-canvas: #0b0e0c;
+  --cx-surface: #131815;
+  --cx-surface-muted: #1b221e;
+  --cx-ink: #e6eee8;
+  --cx-ink-muted: #9aaba1;
+  --cx-ink-subtle: #6d7c73;
+  --cx-line: #222b26;
+  --cx-line-strong: #303b34;
+
+  --cx-primary: #47bc7f;
+  --cx-primary-hover: #66cd96;
+  --cx-primary-fg: #04140b;
+  --cx-primary-soft: rgb(71 188 127 / 0.13);
+  --cx-primary-soft-fg: #7fd6a5;
+
+  --cx-accent-soft: rgb(243 185 61 / 0.14);
+  --cx-accent-fg: #f7cf6b;
+
+  --cx-danger: #ef6767;
+  --cx-danger-soft: rgb(239 103 103 / 0.13);
+  --cx-danger-fg: #f59c9c;
+
+  --cx-focus: rgb(71 188 127 / 0.3);
+  --cx-dot: rgb(230 238 232 / 0.07);
+
+  --cx-shadow-soft: 0 1px 2px rgb(0 0 0 / 0.5);
+  --cx-shadow-lift: 0 20px 44px -18px rgb(0 0 0 / 0.8);
+  /* Subtle green glow on primary actions and highlights. */
+  --cx-shadow-glow: 0 0 0 1px rgb(71 188 127 / 0.22), 0 10px 32px -10px rgb(71 188 127 / 0.45);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--cx-canvas);
+  --color-surface: var(--cx-surface);
+  --color-surface-muted: var(--cx-surface-muted);
+  --color-ink: var(--cx-ink);
+  --color-ink-muted: var(--cx-ink-muted);
+  --color-ink-subtle: var(--cx-ink-subtle);
+  --color-line: var(--cx-line);
+  --color-line-strong: var(--cx-line-strong);
+
+  --color-primary: var(--cx-primary);
+  --color-primary-hover: var(--cx-primary-hover);
+  --color-primary-fg: var(--cx-primary-fg);
+  --color-primary-soft: var(--cx-primary-soft);
+  --color-primary-soft-fg: var(--cx-primary-soft-fg);
+
+  --color-accent-soft: var(--cx-accent-soft);
+  --color-accent-fg: var(--cx-accent-fg);
+
+  --color-danger: var(--cx-danger);
+  --color-danger-soft: var(--cx-danger-soft);
+  --color-danger-fg: var(--cx-danger-fg);
+
+  --color-focus: var(--cx-focus);
+
+  --shadow-soft: var(--cx-shadow-soft);
+  --shadow-lift: var(--cx-shadow-lift);
+  --shadow-glow: var(--cx-shadow-glow);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    transition: background-color 0.2s ease;
+  }
+
+  ::selection {
+    background-color: var(--cx-primary-soft);
+    color: var(--cx-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--cx-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout & campus utilities                                           */
+/* ------------------------------------------------------------------ */
+
+/* Responsive horizontal page gutter: 16px → 24px → 32px. */
+@utility gutter-x {
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Vertical rhythm between page sections. */
+@utility stack-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  @media (width >= 48rem) {
+    gap: 2rem;
+  }
+}
+
+/* Dotted "campus map" paper texture. */
+@utility campus-grid {
+  background-image: radial-gradient(var(--cx-dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Keeps fixed bottom UI clear of the iOS home indicator. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin control center: black + dark purple + neon violet.            */
+/* A separate visual system from the student app. The `admin-theme`    */
+/* class is put on <html> only while an /admin page is open            */
+/* (layouts/AdminLayout.jsx), so the student green theme never changes. */
+/* It also re-points the semantic tokens, so shared UI pieces (inputs,  */
+/* modals, toasts, the opportunity form) follow the admin palette.      */
+/* ------------------------------------------------------------------ */
+:root {
+  --ax-bg: #08060f;
+  --ax-bg-2: #0d0918;
+  --ax-card: #120d20;
+  --ax-card-hover: #181029;
+  --ax-violet: #8b5cf6;
+  --ax-neon: #a855f7;
+  --ax-deep: #6d28d9;
+  --ax-border: #2e1b4d;
+  --ax-border-strong: #4a2d78;
+  --ax-text: #f5f3ff;
+  --ax-muted: #a78bfa;
+  --ax-subtle: #8b7fb0;
+  --ax-success: #34d399;
+  --ax-warning: #fbbf24;
+  --ax-serious: #fb923c;
+  --ax-danger: #f87171;
+  --ax-grid: rgb(139 92 246 / 0.07);
+  --ax-chart-grid: #241640;
+  /* Chart series (validated against --ax-card: adjacent CVD ΔE >= 9.4, normal-vision >= 24.6). */
+  --ax-series-1: #9085e9;
+  --ax-series-2: #199e70;
+  --ax-series-3: #d95926;
+  --ax-series-4: #3987e5;
+  --ax-series-neutral: #6b6488;
+}
+
+:root.admin-theme,
+:root.admin-theme.dark {
+  --cx-canvas: var(--ax-bg);
+  --cx-surface: var(--ax-card);
+  --cx-surface-muted: #1a1230;
+  --cx-ink: var(--ax-text);
+  --cx-ink-muted: #c4b5fd;
+  --cx-ink-subtle: var(--ax-subtle);
+  --cx-line: var(--ax-border);
+  --cx-line-strong: var(--ax-border-strong);
+  --cx-primary: var(--ax-violet);
+  --cx-primary-hover: var(--ax-neon);
+  --cx-primary-fg: #ffffff;
+  --cx-primary-soft: rgb(139 92 246 / 0.16);
+  --cx-primary-soft-fg: #d8ccff;
+  --cx-accent-soft: rgb(251 191 36 / 0.14);
+  --cx-accent-fg: #fcd34d;
+  --cx-danger: #ef4444;
+  --cx-danger-soft: rgb(239 68 68 / 0.14);
+  --cx-danger-fg: #fca5a5;
+  --cx-focus: rgb(168 85 247 / 0.35);
+  --cx-dot: rgb(167 139 250 / 0.08);
+  --cx-shadow-soft: 0 1px 2px rgb(0 0 0 / 0.6);
+  --cx-shadow-lift: 0 24px 48px -20px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(139 92 246 / 0.12);
+  --cx-shadow-glow: 0 0 0 1px rgb(168 85 247 / 0.35), 0 10px 32px -10px rgb(168 85 247 / 0.55);
+  color-scheme: dark;
+}
+
+:root.admin-theme body {
+  background-color: var(--ax-bg);
+}
+
+:root.admin-theme ::selection {
+  background-color: rgb(168 85 247 / 0.35);
+  color: #ffffff;
+}
+
+@theme inline {
+  --color-ax-bg: var(--ax-bg);
+  --color-ax-bg-2: var(--ax-bg-2);
+  --color-ax-card: var(--ax-card);
+  --color-ax-card-hover: var(--ax-card-hover);
+  --color-ax-violet: var(--ax-violet);
+  --color-ax-neon: var(--ax-neon);
+  --color-ax-deep: var(--ax-deep);
+  --color-ax-border: var(--ax-border);
+  --color-ax-border-strong: var(--ax-border-strong);
+  --color-ax-text: var(--ax-text);
+  --color-ax-muted: var(--ax-muted);
+  --color-ax-subtle: var(--ax-subtle);
+  --color-ax-success: var(--ax-success);
+  --color-ax-warning: var(--ax-warning);
+  --color-ax-serious: var(--ax-serious);
+  --color-ax-danger: var(--ax-danger);
+}
+
+/* Thin operations-center grid behind admin pages. */
+@utility admin-grid {
+  background-image:
+    linear-gradient(var(--ax-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ax-grid) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Glass panel with a hairline violet edge. */
+@utility admin-panel {
+  border: 1px solid var(--ax-border);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgb(18 13 32 / 0.94), rgb(13 9 24 / 0.94));
+  box-shadow: inset 0 1px 0 rgb(167 139 250 / 0.06);
+  backdrop-filter: blur(10px);
+}
+
+/* Subtle neon glow for highlighted elements (focus targets, live badges). */
+@utility admin-glow {
+  box-shadow: 0 0 0 1px rgb(168 85 247 / 0.32), 0 8px 28px -12px rgb(168 85 247 / 0.6);
+}
