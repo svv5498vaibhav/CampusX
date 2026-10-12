@@ -4,6 +4,7 @@
 // It answers what the SDK calls (upload, chunked upload_large, destroy) and records every call:
 //   GET /__uploads → [{ publicId, resourceType, folder, bytes, format }]   GET /__destroyed → [publicId]
 //   POST /__fail?count=n → the next n uploads answer HTTP 500 (to test failure handling)
+//   failDestroys(n)       → the next n removals answer HTTP 500 (n = Infinity: until reset with 0)
 // It never stores file contents.
 import crypto from 'node:crypto';
 import http from 'node:http';
@@ -28,6 +29,7 @@ export async function startFakeCloudinary(port) {
   const destroyed = [];
   let failNext = 0;
   let succeedFirst = 0;
+  let failDestroysNext = 0;
 
   const server = http.createServer((req, res) => {
     const send = (status, body) => {
@@ -66,6 +68,10 @@ export async function startFakeCloudinary(port) {
     });
     busboy.on('close', () => {
       if (action === 'destroy') {
+        if (failDestroysNext > 0) {
+          failDestroysNext -= 1;
+          return send(500, { error: { message: 'Simulated Cloudinary failure' } });
+        }
         destroyed.push(fields.public_id);
         return send(200, { result: 'ok' });
       }
@@ -110,6 +116,10 @@ export async function startFakeCloudinary(port) {
     failNext: (count = 1, after = 0) => {
       failNext = count;
       succeedFirst = after;
+    },
+    /** The next `count` removals (destroy) fail with HTTP 500. */
+    failDestroys: (count = 1) => {
+      failDestroysNext = count;
     },
     stop: () => new Promise((resolve) => server.close(resolve)),
   };

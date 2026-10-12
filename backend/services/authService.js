@@ -2,10 +2,11 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import env from '../config/env.js';
 import { BCRYPT_COST } from '../config/auth.js';
-import User, { ACCOUNT_STATUSES, toSafeUser } from '../models/User.js';
+import User, { ACCOUNT_STATUSES, ROLES, toSafeUser } from '../models/User.js';
 import { REVOKE_REASONS } from '../models/Session.js';
 import ApiError from '../utils/ApiError.js';
 import { signAccessToken } from '../utils/generateToken.js';
+import * as accountDeletion from './accountDeletionService.js';
 import { CAMPUS_EVENTS, emitCampusEvent } from './campusEvents.js';
 import { recordAccountLocked, recordLoginOutcome, recordSecurityEvent, recordUnknownAccountFailure, unknownAccountLock } from './securityService.js';
 import {
@@ -25,6 +26,7 @@ const STATUS_MESSAGES = {
   [ACCOUNT_STATUSES.SUSPENDED]: 'Your account is temporarily suspended. Please contact CampusX support.',
   [ACCOUNT_STATUSES.BLOCKED]: 'Your account has been blocked. Please contact CampusX support.',
   [ACCOUNT_STATUSES.DEACTIVATED]: 'This account has been deactivated.',
+  [ACCOUNT_STATUSES.DELETING]: 'This account is being deleted.',
 };
 
 /** Only active accounts may sign in or use the API. */
@@ -38,6 +40,9 @@ export function assertAccountActive(user) {
 // response timing does not reveal which emails are registered. Computed once at startup.
 const dummyHashPromise = bcrypt.hash(crypto.randomUUID(), BCRYPT_COST);
 const dummyHash = () => dummyHashPromise;
+
+/** The one password check: `user` must be loaded with `+passwordHash`. */
+const passwordMatches = async (user, password) => Boolean(user.passwordHash) && bcrypt.compare(password, user.passwordHash);
 
 const lockedMessage = (lockedUntil) => {
   const minutes = Math.max(1, Math.ceil((lockedUntil.getTime() - Date.now()) / 60_000));
@@ -114,8 +119,7 @@ export async function login({ email, password }, meta) {
     throw new ApiError(423, lockedMessage(user.lockedUntil));
   }
 
-  const passwordMatches = Boolean(user.passwordHash) && (await bcrypt.compare(password, user.passwordHash));
-  if (!passwordMatches) {
+  if (!(await passwordMatches(user, password))) {
     const lockedUntil = await recordFailedLogin(user._id, meta.ip);
     if (lockedUntil) throw new ApiError(423, lockedMessage(lockedUntil));
     throw ApiError.unauthorized(INVALID_CREDENTIALS);
@@ -171,7 +175,7 @@ export async function changePassword(userId, { currentPassword, newPassword }, {
   const user = await User.findById(userId).select('+passwordHash');
   if (!user) throw ApiError.unauthorized(SESSION_EXPIRED_MESSAGE);
   const fieldError = (field, message) => ApiError.unprocessable(message, [{ field, message }]);
-  if (!user.passwordHash || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+  if (!(await passwordMatches(user, currentPassword))) {
     throw fieldError('currentPassword', WRONG_CURRENT_PASSWORD);
   }
   if (await bcrypt.compare(newPassword, user.passwordHash)) {
@@ -191,6 +195,26 @@ export async function changePassword(userId, { currentPassword, newPassword }, {
   await recordSecurityEvent('PASSWORD_CHANGED', { userId: user._id.toString(), ip, metadata: { otherDevicesSignedOut: otherSessionsSignedOut } });
   emitCampusEvent(CAMPUS_EVENTS.AUTH_PASSWORD_CHANGED, { userId: user._id.toString() });
   return { otherSessionsSignedOut };
+}
+
+export const WRONG_DELETION_PASSWORD = 'Your password is incorrect.';
+export const STAFF_DELETION_REFUSED = "Moderator and admin accounts can't be deleted here. Ask a CampusX admin to remove your staff role first.";
+
+/**
+ * Permanently deletes the signed-in student's own account (always `userId` from the verified session, never
+ * an id from the request). The password must be right (a 422 field error, never 401, so the app doesn't treat
+ * it as an expired session); the typed confirmation is checked by the validator. Staff accounts are refused:
+ * their role is granted by `npm run user:role` and their actions are referenced by the audit log.
+ * The deletion itself: services/accountDeletionService.js. Returns { status: 'deleted' | 'scheduled' }.
+ */
+export async function deleteAccount(userId, { password }, { ip }) {
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user) throw ApiError.unauthorized(SESSION_EXPIRED_MESSAGE);
+  if (user.role !== ROLES.STUDENT) throw ApiError.forbidden(STAFF_DELETION_REFUSED);
+  if (!(await passwordMatches(user, password))) {
+    throw ApiError.unprocessable(WRONG_DELETION_PASSWORD, [{ field: 'password', message: WRONG_DELETION_PASSWORD }]);
+  }
+  return accountDeletion.deleteAccount(user, { ip });
 }
 
 /** Ends the session behind the refresh cookie and/or the access token. Safe to call twice. */

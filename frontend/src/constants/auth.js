@@ -14,3 +14,5 @@ export const SESSION_HINT_KEY = 'campusx-has-session';
 export const NAME_MAX_LENGTH = 50;
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 72;
+// Typed to confirm account deletion. Must match backend/config/securityConfig.js ACCOUNT_DELETION.confirmationText.
+export const DELETE_ACCOUNT_CONFIRMATION = 'DELETE';

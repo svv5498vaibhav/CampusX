@@ -6,7 +6,8 @@ import logger from '../utils/logger.js';
  * services knowing about them:
  *   services/gamificationEvents.js   points, levels, badges and ranking milestones
  *   services/notificationEvents.js   in-app notifications (saved, then delivered over Socket.IO)
- *   sockets/socket.js                ends a device's live connections when it logs out
+ *   sockets/socket.js                ends a device's live connections when it logs out (all of a student's
+ *                                    connections when the account is deleted)
  *   services/admin/adminRealtime.js  live alerts for signed-in staff (new reports and cases)
  *   (Trust & Safety events come from services/moderationService.js and services/reportService.js)
  * Payloads carry ids only; listeners load whatever they need to show.
@@ -29,6 +30,8 @@ export const CAMPUS_EVENTS = Object.freeze({
   AUTH_SESSION_ENDED: 'auth:session-ended',
   // A student changed their password ({ userId }); they get a security notice.
   AUTH_PASSWORD_CHANGED: 'auth:password-changed',
+  // A student deleted their account ({ userId }): every live connection of theirs is closed.
+  AUTH_ACCOUNT_DELETED: 'auth:account-deleted',
   PROJECT_CREATED: 'project:created',
   PROJECT_UPDATED: 'project:updated',
   PROJECT_DELETED: 'project:deleted',

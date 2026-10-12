@@ -69,15 +69,17 @@ export async function uploadMedia(filePath, presetName, { folder } = {}) {
 /**
  * The URL to display: the preset's delivery transformation applied to the untouched original.
  * `format` adds a file extension (videos need one so browsers know what they're playing).
+ * `bytes` (the uploaded size) skips the transformation for files above the preset's maxDeliveryTransformBytes.
  */
-export function deliveryUrl(publicId, presetName, version, { format } = {}) {
+export function deliveryUrl(publicId, presetName, version, { format, bytes } = {}) {
   const preset = presetFor(presetName);
+  const transform = preset.delivery && !(preset.maxDeliveryTransformBytes && bytes > preset.maxDeliveryTransformBytes);
   return cloudinary.url(publicId, {
     secure: true,
     resource_type: preset.resourceType,
     ...(version && { version }),
     ...(format && { format }),
-    ...(preset.delivery && { transformation: preset.delivery }),
+    ...(transform && { transformation: preset.delivery }),
   });
 }
 
@@ -101,12 +103,21 @@ export async function deleteMedia(publicId, resourceType = 'image') {
   return result === 'ok' || result === 'not found';
 }
 
+// The SDK drops Cloudinary's explanation of a 401/403 ("missing permissions", wrong key), so the log
+// says what to check. Names only, never values.
+const CREDENTIALS_HINT =
+  ' - check that CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET belong to CLOUDINARY_CLOUD_NAME and that this API key is allowed to upload and delete assets (Cloudinary Console > Settings > API Keys)';
+
+/** Error details for the logs: message, HTTP status, and a hint when Cloudinary refused the credentials. */
+const describeCloudinaryError = (error) =>
+  `${error?.message ?? error}${error?.http_code ? ` (HTTP ${error.http_code})` : ''}${[401, 403].includes(error?.http_code) ? CREDENTIALS_HINT : ''}`;
+
 /** Cloudinary details stay in the logs; students get a short, friendly message. */
 export function friendlyUploadError(error, label) {
   if (error instanceof ApiError && error.statusCode === 503) {
     return ApiError.serviceUnavailable(`${label} uploads aren't available right now. Please try again later.`);
   }
-  logger.error(`${label} upload to Cloudinary failed: ${error?.message ?? error}${error?.http_code ? ` (HTTP ${error.http_code})` : ''}`);
+  logger.error(`${label} upload to Cloudinary failed: ${describeCloudinaryError(error)}`);
   return new ApiError(502, `${label} upload failed. Please try again.`);
 }
 
@@ -116,6 +127,6 @@ export async function discardMedia(publicId, resourceType = 'image') {
   try {
     await deleteMedia(publicId, resourceType);
   } catch (error) {
-    logger.warn(`Could not delete Cloudinary ${resourceType} ${publicId}; it may need manual cleanup: ${error?.message ?? error}`);
+    logger.warn(`Could not delete Cloudinary ${resourceType} ${publicId}; it may need manual cleanup: ${describeCloudinaryError(error)}`);
   }
 }

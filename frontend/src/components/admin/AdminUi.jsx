@@ -156,6 +156,7 @@ const PILL_SPECS = {
     suspended: { tone: 'warning', icon: TriangleAlert },
     blocked: { tone: 'danger', icon: Ban },
     deactivated: { tone: 'neutral', icon: CircleSlash },
+    deleting: { tone: 'danger', icon: CircleSlash },
   },
 };
 PILL_SPECS.priority = PILL_SPECS.risk;

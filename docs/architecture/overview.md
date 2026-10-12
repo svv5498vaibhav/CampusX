@@ -33,6 +33,7 @@ deployed independently.
 | `config/cors.js` · `config/media.js` | CORS allow-list · upload presets |
 | `sockets/socket.js` · `socketAuth.js` · `socketEvents.js` | Socket.IO server (handshake auth, per-student rooms, `emitToUser()`), event names |
 | `jobs/opportunityDeadlineReminders.js` | In-process timer for opportunity deadline reminders |
+| `jobs/accountDeletionCleanup.js` | In-process timer that finishes interrupted account deletions and retries their Cloudinary files |
 | `middleware/*` | Request logging, rate limiting, sanitization, validation, uploads, 404, errors |
 | `services/*` | `healthService` (status), `cacheService` (get/set/delete), `mediaService` (Cloudinary) |
 | `utils/*` | `ApiError`, `sendSuccess`, `logger` (redacts URL credentials), `gracefulShutdown` |
@@ -284,6 +285,7 @@ refresh token  48 random bytes, REFRESH_TOKEN_EXPIRES_IN (7 days) -> HttpOnly co
 | `pending` | no | Reserved for future verification/onboarding gates |
 | `suspended` / `blocked` | no | Moderation; existing sessions stop working on their next request |
 | `deactivated` | no | Closed by the owner |
+| `deleting` | no | The owner confirmed deletion; locked while its data is removed (normally seconds; the document is deleted last). See [Account deletion](#account-deletion) |
 
 ### Cookies, CORS and deployment
 
@@ -419,6 +421,10 @@ configured).
 | --- | --- |
 | Profile photo | `c_fill,g_auto,w_400,h_400` + `q_auto,f_auto` (square, centred on the subject) |
 | Cover image | `c_fill,g_auto,w_1600,h_480` + `q_auto,f_auto` (wide banner) |
+| Post video | `q_auto` up to 40 MB; larger videos are served as uploaded (Cloudinary's Free plan refuses on-the-fly video transformations above 40 MB) |
+
+The Cloudinary API key must be allowed to upload and delete assets. A key without those permissions
+passes the startup check, but every upload answers 502 and the server log shows HTTP 403 with a hint.
 
 ### Frontend
 
@@ -968,6 +974,31 @@ A semester-by-semester career path on the student's own profile (`/profile/roadm
   code for now. Moving them to a `RoadmapTemplate` collection needs a new admin-only permission (moderators
   would not get it automatically), an editor with the same link checks on save, audit rows, and a version bump
   that keeps students' stored milestone ids valid.
+
+## Account deletion
+
+A student deletes their own account from the Danger Zone at the bottom of `/profile`. API details and the full
+data policy: [docs/api/README.md](../api/README.md#delete-authaccount).
+
+| File | Responsibility |
+| --- | --- |
+| `routes/authRoutes.js` → `controllers/authController.js` → `services/authService.js` (`deleteAccount`) | `DELETE /auth/account`: origin check, `authenticate`, `accountDeletionRateLimiter`, `deleteAccountRules` (password + typed `DELETE`); the service refuses staff and checks the password with the same `passwordMatches()` helper as sign-in and password change |
+| `services/accountDeletionService.js` | Lock (`status: "deleting"` while the checked hash is current) → `purgeAccountData()` (in a transaction when `supportsTransactions()`; idempotent steps otherwise) → `finishDeletion()` (closes sockets, emits `POST_UNLIKED` / `COMMENT_DELETED` / `COMMUNITY_ARCHIVED` so listeners reconcile other students' points and notifications, notifies new community owners, refreshes leaderboards, audits) → background follow-up (Cloudinary removal, then one sweep for late records) |
+| `models/AccountDeletion.js` | One record per deletion: `purgedAt` / `finishedAt` / `completedAt`, the affected posts and communities until the follow-up ran, Cloudinary ids still to remove with attempts and next retry, counts. TTL 30 days after completion |
+| `jobs/accountDeletionCleanup.js` | Every 10 minutes (and 30 s after start): `resumeDeletions()` finishes locked accounts left alone for 5 minutes, follow-ups that never ran, and due file retries |
+| `sockets/socket.js` | `AUTH_ACCOUNT_DELETED` disconnects every socket in the student's room |
+| Frontend: `components/profile/DangerZoneCard.jsx`, `DeleteAccountDialog.jsx`, `hooks/useDeleteAccount.js`, `store/clearAccountData.js` | Danger Zone (staff see a note instead), the confirmation dialog (password with show/hide, typed `DELETE`, one request at a time, cannot be closed while running), then: socket closed, session cleared (other tabs follow through the session-hint `storage` event), every store reset, onboarding draft and per-account local flags removed, login page with a confirmation |
+
+- **Ordering keeps it safe.** Files are listed before their records are deleted and removed from Cloudinary only
+  after `purgedAt`; the user document is deleted last, so a locked account is always found again by the job
+  until everything else is gone.
+- **Transactions.** With a replica set (Atlas) the whole purge is one transaction: a failure rolls back, the
+  account is reopened and the request answers 500 with the session intact. A standalone server (local MongoDB,
+  the test mongod) runs the same steps one by one; an interruption answers 202, keeps the account locked and
+  signed out, and the job finishes it. Counters touched on other students' content (comments, members) are
+  recalculated from what remains rather than decremented, so repeating a step can't skew them.
+- **Anonymity.** Nothing in the Anonymous Zone is changed, and the audit row carries counts of campus content
+  only, so neither other students nor staff screens can tie anonymous posts to the deleted account by timing.
 
 ## Authorization and ownership
 

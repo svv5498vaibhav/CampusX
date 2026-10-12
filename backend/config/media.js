@@ -129,6 +129,9 @@ export const MEDIA_PRESETS = Object.freeze({
     allowedFormats: ['mp4', 'webm'],
     maxFileSize: 50 * MB,
     delivery: [{ quality: 'auto' }],
+    // Cloudinary transforms videos on request only up to 40 MB on the Free plan ("video is too large to
+    // process synchronously" above that); larger videos are served exactly as uploaded.
+    maxDeliveryTransformBytes: 40 * MB,
   },
 });
 

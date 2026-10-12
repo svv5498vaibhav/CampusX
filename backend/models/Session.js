@@ -7,6 +7,8 @@ export const REVOKE_REASONS = Object.freeze({
   ACCOUNT_INACTIVE: 'account_inactive',
   // The password was changed on another device.
   PASSWORD_CHANGED: 'password_changed',
+  // The owner deleted the account (used when the deletion finishes in the background).
+  ACCOUNT_DELETED: 'account_deleted',
 });
 
 /**

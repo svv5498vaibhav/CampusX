@@ -51,6 +51,27 @@ permissions in `backend/config/adminConfig.js`, Trust & Safety limits in `backen
     that was checked, so of several simultaneous changes exactly one wins (Phase 17 QA-03). There is no
     password reset yet (see Known gaps).
 
+- [x] **Account deletion** (`DELETE /auth/account`, `services/accountDeletionService.js`, rules in
+  `ACCOUNT_DELETION` of `config/securityConfig.js`)
+  - Only the signed-in account (id from the verified token; no id in the path, ids in the body ignored).
+    Current password checked against the bcrypt hash through the same helper as sign-in and password change
+    (wrong → 422 field error, never 401) plus the typed word `DELETE`, both validated on the server. The
+    password is never stored or logged. Origin-checked (it clears the refresh cookie). 5 attempts per 15 minutes
+    per student, every attempt counted. Staff accounts are refused (403).
+  - The account is locked first (`status: "deleting"`, only while the checked password is still current), so
+    REST, refresh, sign-in and socket handshakes are refused at once; then everything is removed in one MongoDB
+    transaction where supported (a failure rolls back and reopens the account, session kept). Without
+    transactions every step is idempotent and the locked account is finished by `jobs/accountDeletionCleanup.js`.
+    The user document goes last; "deleted" is only answered once it is gone.
+  - All sessions are removed and every live socket of the account is closed (`AUTH_ACCOUNT_DELETED`); the
+    refresh cookie is cleared. The frontend drops its token, session hint, stores and per-account local data.
+  - Cloudinary files are removed only after no record points at them; failures are retried with backoff and
+    finally logged for manual cleanup (`accountdeletions` keeps the ids, nothing personal, 30 days).
+  - Kept for safety: reports filed, reports/cases/audit rows about the account (ids only). Anonymous Zone content
+    is left untouched so the deletion can't reveal who wrote it. Audited as `ACCOUNT_DELETED` (counts only).
+  - Tests: `tests/api/account-deletion.mjs` (incl. a real replica set for commit/rollback),
+    `tests/browser/account-deletion.mjs`.
+
 - [x] **Brute-force protection**
   - Per account: `MAX_LOGIN_ATTEMPTS` (5) wrong passwords lock sign-in for `LOGIN_LOCK_MINUTES` (15).
     The lock is temporary; the counter resets after it. Audited as `ACCOUNT_LOCKED`.
@@ -158,7 +179,8 @@ permissions in `backend/config/adminConfig.js`, Trust & Safety limits in `backen
 - [x] **Audit logging** (Phase 15 log, `models/ModerationAuditLog.js`)
   - Staff sign-ins, refused admin requests, role and status changes, moderation and report decisions,
     opportunity changes, anonymous reveals, and Phase 16 account security events (`ACCOUNT_LOCKED`,
-    `SUSPICIOUS_LOGIN`, `REFRESH_TOKEN_REUSE`, `RATE_LIMIT_EXCEEDED`, `ABUSE_PATTERN`) in the **Security** category.
+    `SUSPICIOUS_LOGIN`, `REFRESH_TOKEN_REUSE`, `RATE_LIMIT_EXCEEDED`, `ABUSE_PATTERN`, plus `PASSWORD_CHANGED`
+    and `ACCOUNT_DELETED`) in the **Security** category.
   - Each row: actor (or system), action, target, previous/new status, reason, small metadata, request
     address, time. Metadata passes `sanitizeSecurityMetadata()`: no passwords, tokens, secrets or emails.
   - Address-only events (forged tokens, refused uploads/requests, limits without an account) go to the
@@ -224,5 +246,12 @@ These are deliberate, documented trade-offs or later work, not oversights:
   instances and no Redis, limits are per instance and reset on restart.
 - **Per-account lockout can be triggered by someone else** (by guessing wrong on purpose). It is short
   (15 min) and never permanent, which keeps that nuisance bounded.
+- **Account deletion trade-offs.** A deleted student can sign up again with the same email (nothing about the
+  account is kept to recognise it), so deletion can be used to shed a moderation history; the moderation records
+  themselves stay. Anonymous Zone content stays online after the account is gone (by design, see above). A few
+  deletion queries scan collections without an index (likes/saves on posts and projects, `createdBy` on
+  communities, `actor` on notifications): fine at campus scale, worth an index if those collections grow large.
+  A request that was already past authentication when the account was locked can still write one record; the
+  follow-up sweep removes such late records, but only once, shortly after the deletion.
 - **Real Cloudinary, Redis and MongoDB Atlas were not exercised by the Phase 16 suites** (they use a local
   MongoDB, no Redis and no Cloudinary).

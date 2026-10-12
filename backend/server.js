@@ -3,7 +3,9 @@ import env, { developmentWarnings, validateEnv } from './config/env.js';
 import app from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
+import { startAccountDeletionCleanup, stopAccountDeletionCleanup } from './jobs/accountDeletionCleanup.js';
 import { startDeadlineReminders, stopDeadlineReminders } from './jobs/opportunityDeadlineReminders.js';
+import { settled as accountDeletionsSettled } from './services/accountDeletionService.js';
 import { registerGamificationListeners, settled as gamificationSettled } from './services/gamificationEvents.js';
 import { registerNotificationListeners, settled as notificationsSettled } from './services/notificationEvents.js';
 import { registerRecommendationListeners, settled as recommendationsSettled } from './services/recommendationEvents.js';
@@ -36,6 +38,8 @@ registerGracefulShutdown(async () => {
   }
   // Points and notifications still being written for the last requests finish before the database closes.
   await stopDeadlineReminders();
+  await stopAccountDeletionCleanup();
+  await accountDeletionsSettled();
   await gamificationSettled();
   await notificationsSettled();
   await recommendationsSettled();
@@ -63,6 +67,8 @@ async function start() {
   // Live alerts for signed-in moderators and admins (new reports and cases, database/Redis connection changes).
   registerAdminRealtime();
   startDeadlineReminders();
+  // Finishes account deletions a restart interrupted and retries files Cloudinary didn't remove yet.
+  startAccountDeletionCleanup();
 
   await listen(env.port);
   logger.info(`CampusX API running on http://localhost:${env.port} (${env.nodeEnv})`);

@@ -49,6 +49,9 @@ try {
   const photoPostId = photoPost.data?.post?.id;
   const videoPost = await upload('/posts', chitra.token, 'media', [file(MP4, 'video/mp4', 'clip.mp4')], { fields: { content: 'Our dance crew practice clip for the fest.' } });
   check('video post → 201, type video, poster URL', videoPost.status === 201 && videoPost.data.post.type === 'video' && Boolean(videoPost.data.post.media[0]?.posterUrl), videoPost.body);
+  check('a small video is served optimised (q_auto)', /\/video\/upload\/q_auto\//.test(videoPost.data?.post?.media?.[0]?.url ?? ''), videoPost.data?.post?.media?.[0]?.url);
+  const largeVideo = await upload('/posts', chitra.token, 'media', [file(Buffer.concat([MP4, Buffer.alloc(41 * 1024 * 1024)]), 'video/mp4', 'fest.mp4')], { fields: { content: 'Full fest performance from the main stage.' } });
+  check('a 41 MB video (above Cloudinary Free on-the-fly limit) → 201, served as uploaded (no transformation)', largeVideo.status === 201 && /\/video\/upload\/v\d+\//.test(largeVideo.data?.post?.media?.[0]?.url ?? ''), largeVideo.data?.post?.media?.[0]?.url ?? largeVideo.body);
   check('5 photos → 422 (max 4)', (await upload('/posts', bilal.token, 'media', [jpg('a.jpg'), jpg('b.jpg'), jpg('c.jpg'), jpg('d.jpg'), jpg('e.jpg')], { fields: { content: 'Too many photos.' } })).status === 422);
   check('photo + video together → 422', (await upload('/posts', bilal.token, 'media', [jpg(), file(MP4, 'video/mp4', 'clip.mp4')], { fields: { content: 'Mixed media.' } })).status === 422);
   check('photo-only post (no text) is fine', (await upload('/posts', dev.token, 'media', [jpg()], {})).status === 201);

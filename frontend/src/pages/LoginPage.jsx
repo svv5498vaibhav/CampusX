@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { ArrowRight, Mail } from 'lucide-react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { Alert, Button, Input, PasswordInput } from '@/components/ui';
 import { ROUTES } from '@/constants/routes';
@@ -12,6 +13,13 @@ export default function LoginPage() {
   useDocumentTitle('Log in');
   const login = useAuthStore((state) => state.login);
   const location = useLocation();
+  const navigate = useNavigate();
+  // Set after deleting an account ('deleted' | 'scheduled'). Read once, then cleared so a reload won't repeat it.
+  const [accountDeleted] = useState(() => location.state?.accountDeleted ?? null);
+  useEffect(() => {
+    if (location.state?.accountDeleted) navigate(location.pathname, { replace: true, state: null });
+    // Once on arrival.
+  }, []);
   const { formRef, fieldProps, formError, isSubmitting, handleSubmit } = useForm(
     { email: '', password: '' },
     validateLoginForm,
@@ -38,6 +46,12 @@ export default function LoginPage() {
       <form ref={formRef} noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {formError ? (
           <Alert variant="danger">{formError}</Alert>
+        ) : accountDeleted ? (
+          <Alert variant="success" title={accountDeleted === 'scheduled' ? 'Account closed' : 'Account deleted'}>
+            {accountDeleted === 'scheduled'
+              ? 'Your account is closed. Removing the rest of its data finishes automatically.'
+              : 'Your CampusX account and its data have been permanently deleted. You are signed out on every device.'}
+          </Alert>
         ) : (
           location.state?.from && <Alert variant="info">Please log in to continue.</Alert>
         )}

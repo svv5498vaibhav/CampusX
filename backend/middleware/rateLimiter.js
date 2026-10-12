@@ -92,6 +92,15 @@ export const passwordChangeRateLimiter = createRateLimiter({
   message: 'Too many password change attempts. Please wait a few minutes and try again.',
 });
 
+// Account deletion: every attempt counts (wrong password or not), on the shared store, like password change.
+export const accountDeletionRateLimiter = createRateLimiter({
+  name: 'account-deletion',
+  windowMs: AUTH_RATE_LIMITS.accountDeletion.windowMinutes * MINUTE,
+  limit: AUTH_RATE_LIMITS.accountDeletion.max,
+  keyGenerator: perStudent,
+  message: 'Too many account deletion attempts. Please wait a few minutes and try again.',
+});
+
 // Photos and videos cost Cloudinary storage and bandwidth. Only requests that carry files count.
 export const mediaUploadRateLimiter = createRateLimiter({
   label: 'media-uploads',

@@ -118,12 +118,14 @@ curl http://localhost:5000/api/v1/health
 | --- | --- |
 | `POST /auth/login` | 20 **failed** attempts per 15 min per IP (successful logins don't count) |
 | `POST /auth/register` | 15 per hour per IP |
+| `PUT /auth/password`, `DELETE /auth/account` | 5 attempts each per 15 min per signed-in student (every attempt counts, right or wrong) |
 | Per account | `MAX_LOGIN_ATTEMPTS` (5) wrong passwords lock sign-in for `LOGIN_LOCK_MINUTES` (15), then the counter resets |
 | Per unknown email | Exactly the same lock and answers, so a `423` never reveals whether an account exists |
 
 Security events (admin audit log, Security category): `ACCOUNT_LOCKED` when a lock starts, `SUSPICIOUS_LOGIN`
-for a successful sign-in right after 3+ wrong passwords or within 24 h of a lock (never refused), and
-`REFRESH_TOKEN_REUSE` when a replayed refresh cookie signs a device out.
+for a successful sign-in right after 3+ wrong passwords or within 24 h of a lock (never refused),
+`REFRESH_TOKEN_REUSE` when a replayed refresh cookie signs a device out, and `ACCOUNT_DELETED` when a student
+deletes their account (counts only).
 
 ### `POST /auth/register`
 
@@ -189,6 +191,68 @@ Requires a bearer token. `200`:
 
 `401` "Please log in to continue." (no token) or "Your session has expired. Please log in again."
 (invalid, expired or revoked); `403` if the account is not active.
+
+### `DELETE /auth/account`
+
+Permanently deletes the **signed-in student's own account**. Requires a bearer token; the account is always
+the one behind the token (there is no id in the path, and `userId`/`id`/`user` in the body are ignored).
+Origin-checked like the cookie routes, because it clears the refresh cookie.
+
+Body (nothing else is read):
+
+| Field | Rules |
+| --- | --- |
+| `password` | The current password, checked against the stored bcrypt hash. Never stored or logged |
+| `confirmation` | Exactly `DELETE` (surrounding spaces ignored; lower case is refused) |
+
+`200` (everything is gone; the `cx_refresh` cookie is cleared, `Cache-Control: no-store`):
+
+```json
+{ "success": true, "message": "Your account has been permanently deleted.", "data": { "status": "deleted" } }
+```
+
+`202` `{ "data": { "status": "scheduled" } }` "Your account has been closed and is being deleted. This finishes
+automatically.": only on a MongoDB server without transactions, when the removal was interrupted. The account
+is already locked and signed out everywhere; the cleanup job finishes it. Clients treat it like `200`.
+
+| Status | Message | When |
+| --- | --- | --- |
+| 401 | Please log in to continue. / Your session has expired… | No, invalid or revoked token |
+| 403 | Requests from this origin are not allowed. | Foreign `Origin` |
+| 403 | Moderator and admin accounts can't be deleted here. Ask a CampusX admin to remove your staff role first. | Staff accounts |
+| 422 | Your password is incorrect. (field `password`) | Wrong password: a field error, **never 401**, so the app keeps the student signed in |
+| 422 | Please enter your password. / Type DELETE to confirm. (field `password` / `confirmation`) | Validation |
+| 409 | Your account changed while we were checking. Please try again. | The password changed, or another deletion started, after the check |
+| 429 | Too many account deletion attempts… | 5 per 15 min per student |
+| 500 | We couldn't delete your account right now, so nothing was removed. Please try again in a few minutes. | The transaction failed and was rolled back; the account is open again and the session still works |
+
+**What happens** (`backend/services/accountDeletionService.js`):
+
+1. The account is locked (`status: "deleting"`) only while it is active and the checked password is still its
+   password. From then on every request, refresh, sign-in (`403` "This account is being deleted.") and socket
+   handshake of the account is refused.
+2. Its data is removed in one MongoDB transaction when the server supports them (replica sets, Atlas):
+   all or nothing. Without transactions the same steps run one by one; each is safe to repeat.
+3. The user document goes last; then all its live sockets are closed, other students' points and counts are
+   reconciled, and an `ACCOUNT_DELETED` audit row is written (counts only, Security category).
+4. Its Cloudinary files are removed once no record points at them, retried with a growing delay (5 min
+   doubling, up to 6 h, 10 attempts) by the cleanup job, then logged for manual cleanup.
+
+| Data | Policy |
+| --- | --- |
+| Account, sessions, profile photo and cover | Deleted (files removed from Cloudinary) |
+| Campus posts | Deleted with their media **and the comments on them** (as when a student deletes a post) |
+| Its comments, likes and saves elsewhere; places on other students' project teams | Removed; comment counts recalculated; the post authors' points for those likes/comments reversed |
+| Projects, achievements (images, proof files) | Deleted (files removed) |
+| Community memberships | Removed; member counts recalculated |
+| Communities it owned alone | Handed to the longest-serving moderator (who is notified), or archived when there is none; never deleted. `createdBy` is cleared |
+| Opportunity tracking, roadmap progress, points ledger, gamification record, notification settings, search history, recommendation data | Deleted |
+| Notifications it received, and notifications it caused for others (they quote removed content) | Deleted |
+| Reports it filed, reports/cases/audit rows about it or its content | Kept for safety (ids only) |
+| Anonymous Zone posts, comments, likes and reports | **Untouched**: never linked to the student in public, and changing them at that moment would reveal which anonymous posts were theirs. Students can delete them first |
+| Deletion record (`accountdeletions`) | Account id, dates, counts and Cloudinary ids still to remove; kept 30 days after completion |
+
+The email address can be used again for a new account.
 
 ### The user object
 

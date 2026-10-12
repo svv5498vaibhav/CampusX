@@ -360,7 +360,7 @@ In development, http://localhost:5173/dev/status shows whether the frontend can 
 | `GAMIFICATION_TIMEZONE` | no | IANA time zone for daily caps, streaks and the weekly/monthly rankings, default `Asia/Kolkata` (weeks start Monday 00:00) |
 | `REDIS_URL` | no | Redis connection. If empty or unreachable, an in-memory cache is used |
 | `CLOUDINARY_CLOUD_NAME` | for uploads | Cloudinary account. Without the three Cloudinary values the app still runs; photo/cover uploads answer "uploads aren't available right now" |
-| `CLOUDINARY_API_KEY` | for uploads | Cloudinary API key |
+| `CLOUDINARY_API_KEY` | for uploads | Cloudinary API key. It must be allowed to upload and delete assets: a key without those permissions starts fine, but every upload fails with "upload failed" and the server log says HTTP 403 |
 | `CLOUDINARY_API_SECRET` | for uploads | Cloudinary API secret |
 | `TRUST_PROXY` | no | Number of reverse proxies in front of the API (e.g. `1` on Render/Railway) |
 

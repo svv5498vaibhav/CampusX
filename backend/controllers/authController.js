@@ -60,6 +60,23 @@ export async function changePassword(req, res) {
   return sendSuccess(res, { message: 'Password changed. Your other devices were signed out.', data: result });
 }
 
+/**
+ * Deletes the signed-in student's own account (the id always comes from the session). The password is read
+ * here only to be checked; it is never stored or logged. 200 once everything is gone; 202 when the deletion
+ * was interrupted and finishes in the background (the account is already locked and signed out). Either way
+ * this browser's refresh cookie is cleared.
+ */
+export async function deleteAccount(req, res) {
+  const { password } = matchedData(req, { locations: ['body'] });
+  const { status } = await authService.deleteAccount(req.user._id, { password }, { ip: req.ip });
+  clearRefreshCookie(res);
+  noStore(res);
+  if (status === 'scheduled') {
+    return sendSuccess(res, { statusCode: 202, message: 'Your account has been closed and is being deleted. This finishes automatically.', data: { status } });
+  }
+  return sendSuccess(res, { message: 'Your account has been permanently deleted.', data: { status } });
+}
+
 export function me(req, res) {
   noStore(res);
   return sendSuccess(res, { message: 'Current user', data: { user: toSafeUser(req.user) } });

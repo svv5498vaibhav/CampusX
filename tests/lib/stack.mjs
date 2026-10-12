@@ -2,6 +2,7 @@
 // backend per suite, each suite on its own fresh database. Never touches ports 5000/5173 or real data.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import net from 'node:net';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -45,6 +46,42 @@ export async function ensureDatabase() {
   await waitFor(() => portOpen(DB_PORT), { label: 'mongod' });
   return {
     started: true,
+    async stop() {
+      mongod.kill();
+      await sleep(800);
+      try {
+        fs.rmSync(dbPath, { recursive: true, force: true });
+      } catch {
+        /* Windows may hold files briefly */
+      }
+    },
+  };
+}
+
+/**
+ * A throwaway single-node replica set (MongoDB transactions need one; the shared test mongod is standalone)
+ * on `port`, for suites that test transactional paths. `uri(db)` connects to it; backends started with that
+ * URI need CAMPUSX_TEST_DB_PORT set to this port (the env hook only allows its test server).
+ */
+export async function startReplicaSet(port) {
+  if (await portOpen(port)) throw new Error(`Port ${port} is already in use: stop whatever runs there first.`);
+  const dbPath = path.join(RESULTS_DIR, 'db', `rs-${Date.now()}`);
+  fs.mkdirSync(dbPath, { recursive: true });
+  fs.mkdirSync(LOGS_DIR, { recursive: true });
+  const log = fs.openSync(path.join(LOGS_DIR, 'mongod-replset.log'), 'w');
+  const mongod = spawn(findMongod(), ['--dbpath', dbPath, '--port', String(port), '--bind_ip', '127.0.0.1', '--replSet', 'rs0'], { stdio: ['ignore', log, log], windowsHide: true });
+  await waitFor(() => portOpen(port), { label: 'mongod (replica set)' });
+  const { MongoClient } = createRequire(path.join(BACKEND, 'package.json'))('mongodb');
+  const client = await MongoClient.connect(`mongodb://127.0.0.1:${port}/?directConnection=true`);
+  try {
+    await client.db('admin').command({ replSetInitiate: { _id: 'rs0', members: [{ _id: 0, host: `127.0.0.1:${port}` }] } });
+    await waitFor(async () => (await client.db('admin').command({ hello: 1 })).isWritablePrimary, { label: 'replica set primary' });
+  } finally {
+    await client.close();
+  }
+  return {
+    port,
+    uri: (dbName) => `mongodb://127.0.0.1:${port}/${dbName}?replicaSet=rs0`,
     async stop() {
       mongod.kill();
       await sleep(800);

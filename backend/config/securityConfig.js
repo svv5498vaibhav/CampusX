@@ -38,6 +38,26 @@ export const AUTH_RATE_LIMITS = Object.freeze({
   // Per signed-in student: every attempt counts, so a stolen access token can't be used to guess the
   // current password.
   passwordChange: { windowMinutes: 15, max: 5 },
+  // Account deletion (DELETE /auth/account), per signed-in student, every attempt counts: same reason.
+  accountDeletion: { windowMinutes: 15, max: 5 },
+});
+
+/**
+ * Account deletion (services/accountDeletionService.js, jobs/accountDeletionCleanup.js). The student
+ * confirms with their password and by typing `confirmationText`. An account whose deletion was interrupted
+ * stays locked (status "deleting") and is finished by the background job once it has been left alone for
+ * `resumeAfterMinutes`. Files on Cloudinary are removed after the database records are gone; failures are
+ * retried with a growing delay (`media`), then logged for manual cleanup. `keepRecordDays`: how long the
+ * deletion record (account id, dates, files still to remove; nothing personal) is kept once finished.
+ */
+export const ACCOUNT_DELETION = Object.freeze({
+  confirmationText: 'DELETE',
+  checkEveryMinutes: 10,
+  resumeAfterMinutes: 5,
+  // How long the request waits for queued point/notification/recommendation updates before the final sweep.
+  settleTimeoutMs: 10_000,
+  media: Object.freeze({ concurrency: 4, maxAttempts: 10, firstRetryMinutes: 5, maxRetryHours: 6 }),
+  keepRecordDays: 30,
 });
 
 export const LOGIN_RULES = Object.freeze({
@@ -58,6 +78,7 @@ export const SECURITY_EVENTS = Object.freeze({
   SUSPICIOUS_LOGIN: { audit: true, throttleSeconds: 10 * MINUTE },
   REFRESH_TOKEN_REUSE: { audit: true, throttleSeconds: 0 },
   PASSWORD_CHANGED: { audit: true, throttleSeconds: 0 },
+  ACCOUNT_DELETED: { audit: true, throttleSeconds: 0 },
   RATE_LIMIT_EXCEEDED: { audit: true, throttleSeconds: HOUR },
   ABUSE_PATTERN: { audit: true, throttleSeconds: 24 * HOUR },
   INVALID_TOKEN: { audit: false, throttleSeconds: 10 * MINUTE },

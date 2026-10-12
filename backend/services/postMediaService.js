@@ -9,7 +9,7 @@ async function uploadOne(file, authorId) {
   const isVideo = file.mediaKind === 'video';
 
   return {
-    url: deliveryUrl(uploaded.publicId, preset, uploaded.version, isVideo ? { format: uploaded.format } : {}),
+    url: deliveryUrl(uploaded.publicId, preset, uploaded.version, isVideo ? { format: uploaded.format, bytes: uploaded.bytes } : {}),
     publicId: uploaded.publicId,
     type: file.mediaKind,
     width: uploaded.width,

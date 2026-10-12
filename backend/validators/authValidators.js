@@ -1,5 +1,6 @@
 import { body } from 'express-validator';
 import { PASSWORD_MAX_BYTES } from '../config/auth.js';
+import { ACCOUNT_DELETION } from '../config/securityConfig.js';
 import { EMAIL_MAX_LENGTH } from '../models/User.js';
 import { nameRule } from './fieldRules.js';
 
@@ -66,6 +67,23 @@ export const changePasswordRules = [
     .withMessage('Your current password is incorrect.'),
   newPasswordRule('newPassword'),
   confirmRule('newPassword'),
+];
+
+// Deleting the account: the current password (checked against the stored hash by the service) and the
+// confirmation word typed exactly (surrounding spaces ignored). Nothing else is read from the body.
+export const deleteAccountRules = [
+  body('password')
+    .isString().withMessage('Please enter your password.')
+    .bail()
+    .notEmpty().withMessage('Please enter your password.')
+    .bail()
+    .custom((value) => Buffer.byteLength(value, 'utf8') <= PASSWORD_MAX_BYTES)
+    .withMessage('Your password is incorrect.'),
+  body('confirmation')
+    .isString().withMessage(`Type ${ACCOUNT_DELETION.confirmationText} to confirm.`)
+    .bail()
+    .custom((value) => value.trim() === ACCOUNT_DELETION.confirmationText)
+    .withMessage(`Type ${ACCOUNT_DELETION.confirmationText} to confirm.`),
 ];
 
 // Login only checks shape. Strength rules apply at sign-up, so a policy change never locks out

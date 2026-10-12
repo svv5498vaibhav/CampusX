@@ -94,7 +94,7 @@ export const PRIORITIES = Object.freeze(['low', 'medium', 'high', 'critical']);
 export const CASE_STATUS_LABELS = Object.freeze({ open: 'Open', reviewing: 'Reviewing', resolved: 'Resolved', dismissed: 'Dismissed' });
 export const REPORT_STATUS_LABELS = Object.freeze({ pending: 'New', reviewing: 'Under review', resolved: 'Resolved', dismissed: 'Rejected', withdrawn: 'Withdrawn' });
 export const CONTENT_STATUS_LABELS = Object.freeze({ approved: 'Approved', flagged: 'Flagged', pending: 'Pending', restricted: 'Restricted', removed: 'Removed' });
-export const ACCOUNT_STATUS_LABELS = Object.freeze({ active: 'Active', pending: 'Pending', suspended: 'Suspended', blocked: 'Blocked', deactivated: 'Deactivated' });
+export const ACCOUNT_STATUS_LABELS = Object.freeze({ active: 'Active', pending: 'Pending', suspended: 'Suspended', blocked: 'Blocked', deactivated: 'Deactivated', deleting: 'Being deleted' });
 
 /** Case decisions. `danger` decisions open the confirmation dialog and need a reason. */
 export const CASE_ACTIONS = Object.freeze({
@@ -158,6 +158,7 @@ export const AUDIT_ACTION_LABELS = Object.freeze({
   RATE_LIMIT_EXCEEDED: 'Rate limit reached',
   ABUSE_PATTERN: 'Repeated limit abuse',
   PASSWORD_CHANGED: 'Password changed (other devices signed out)',
+  ACCOUNT_DELETED: 'Account deleted by its owner',
   ROLE_CHANGED: 'Role changed',
   USER_SUSPENDED: 'Account suspended',
   USER_UNSUSPENDED: 'Suspension lifted',

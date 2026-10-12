@@ -10,4 +10,9 @@ export const authApi = {
   getCurrentUser: () => api.get('/auth/me').then(unwrap),
   /** body: { currentPassword, newPassword, confirmPassword } → { otherSessionsSignedOut }. This device stays signed in. */
   changePassword: (payload) => api.put('/auth/password', payload).then(unwrap),
+  /**
+   * body: { password, confirmation: 'DELETE' } → { status: 'deleted' | 'scheduled' }. Permanent. A wrong
+   * password is a 422 field error and the session stays. A bigger account can take a while to remove.
+   */
+  deleteAccount: (payload) => api.delete('/auth/account', { data: payload, timeout: 60_000 }).then(unwrap),
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Camera, Palette, Pencil } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { CampusJourneyCard } from '@/components/gamification/CampusJourneyCard';
+import { DangerZoneCard } from '@/components/profile/DangerZoneCard';
 import { ImageUploadDialog } from '@/components/profile/ImageUploadDialog';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { RoadmapProfileCard } from '@/components/roadmap/RoadmapProfileCard';
@@ -77,6 +78,9 @@ export default function ProfilePage() {
           </>
         }
       />
+
+      {/* Last on the page, after every profile section and setting. */}
+      <DangerZoneCard />
 
       {options && (
         <>

@@ -14,6 +14,8 @@ export const ROLES = Object.freeze({
  * suspended   temporarily barred by moderation
  * blocked     permanently barred
  * deactivated closed by the account owner
+ * deleting    the owner confirmed deletion; locked while services/accountDeletionService.js removes its
+ *             data (the document itself is deleted last, so this status is normally seen only for seconds)
  */
 export const ACCOUNT_STATUSES = Object.freeze({
   PENDING: 'pending',
@@ -21,6 +23,7 @@ export const ACCOUNT_STATUSES = Object.freeze({
   SUSPENDED: 'suspended',
   BLOCKED: 'blocked',
   DEACTIVATED: 'deactivated',
+  DELETING: 'deleting',
 });
 
 export const NAME_MAX_LENGTH = 50;

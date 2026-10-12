@@ -24,6 +24,11 @@ const onSessionEnded = ({ sessionId }) => {
   if (io && sessionId) io.in(sessionRoom(sessionId)).disconnectSockets(true);
 };
 
+/** A deleted account loses every live connection, on every device. */
+const onAccountDeleted = ({ userId }) => {
+  if (io && userId) io.in(userRoom(String(userId))).disconnectSockets(true);
+};
+
 /**
  * Attaches Socket.IO to the HTTP server. Only signed-in students can connect (sockets/socketAuth.js);
  * each connection joins its student's room, and services deliver to that room with emitToUser().
@@ -50,6 +55,7 @@ export function initSocketServer(httpServer) {
     });
   });
   campusEvents.on(CAMPUS_EVENTS.AUTH_SESSION_ENDED, onSessionEnded);
+  campusEvents.on(CAMPUS_EVENTS.AUTH_ACCOUNT_DELETED, onAccountDeleted);
 
   logger.info('Socket.IO: ready');
   return io;
@@ -117,6 +123,7 @@ export async function closeSocketServer() {
   const server = io;
   io = null;
   campusEvents.off(CAMPUS_EVENTS.AUTH_SESSION_ENDED, onSessionEnded);
+  campusEvents.off(CAMPUS_EVENTS.AUTH_ACCOUNT_DELETED, onAccountDeleted);
   await server.close();
   logger.info('Socket.IO and HTTP server closed');
 }
