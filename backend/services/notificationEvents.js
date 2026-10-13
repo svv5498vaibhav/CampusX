@@ -9,6 +9,7 @@ import AnonymousPost from '../models/AnonymousPost.js';
 import Comment from '../models/Comment.js';
 import Community from '../models/Community.js';
 import CommunityMember from '../models/CommunityMember.js';
+import Follow from '../models/Follow.js';
 import Opportunity from '../models/Opportunity.js';
 import OpportunityApplication from '../models/OpportunityApplication.js';
 import Post from '../models/Post.js';
@@ -34,8 +35,8 @@ import { listText } from './opportunityService.js';
  * Content that Trust & Safety holds back (restricted, pending, removed) never notifies anyone; its owner
  * hears about the moderation decision instead (onContentModerated), without scores, rules or reporters.
  *
- * Not notified, because CampusX has no such feature yet: comment replies, mentions, follows and
- * project comments. Publishing a new opportunity isn't announced to everyone either; only students
+ * Not notified, because CampusX has no such feature yet: comment replies, mentions and project comments.
+ * Unfollows are never announced, and direct messages have their own unread count instead of notifications. Publishing a new opportunity isn't announced to everyone either; only students
  * tracking an opportunity hear about its changes.
  */
 
@@ -104,6 +105,19 @@ export async function onTeamInvites(projectId, ownerId, userIds) {
     entityId: projectId,
     dedupeKey: `project:${projectId}`,
   });
+}
+
+// ----------------------------------------------------------------------------- follows
+
+/**
+ * "Aarav Mehta started following you." Re-reads the relationship: a follow taken back before the student saw
+ * the notification takes it back too (never an "unfollowed you" notification). Once per follower, ever.
+ */
+export async function onFollowChanged(followerId, followingId) {
+  const target = { recipient: String(followingId), type: 'STUDENT_FOLLOWED', dedupeKey: `follower:${followerId}` };
+  const follows = await Follow.exists({ follower: asId(followerId), following: asId(followingId) });
+  if (!follows) return withdrawNotification(target);
+  return createNotification({ ...target, actor: followerId, message: '{actor} started following you.', entityType: 'student', entityId: followerId });
 }
 
 // ----------------------------------------------------------------------------- achievements
@@ -437,6 +451,7 @@ export function registerNotificationListeners() {
   on(E.POST_CREATED, (p) => `announce:${p.postId}`, (p) => onCommunityPost(p.postId));
   on([E.PROJECT_LIKED, E.PROJECT_UNLIKED], (p) => `project-like:${p.projectId}:${p.actorId}`, (p) => onProjectLike(p.projectId, p.actorId));
   on(E.PROJECT_TEAM_INVITED, (p) => `team:${p.projectId}`, (p) => onTeamInvites(p.projectId, p.ownerId, p.userIds));
+  on([E.STUDENT_FOLLOWED, E.STUDENT_UNFOLLOWED], (p) => `follow:${p.followerId}:${p.followingId}`, (p) => onFollowChanged(p.followerId, p.followingId));
   on(E.ACHIEVEMENT_REVIEWED, (p) => `review:${p.achievementId}`, (p) => onAchievementReviewed(p.achievementId));
   on(E.COMMUNITY_MEMBER_JOINED, (p) => `joined:${p.communityId}`, (p) => onMemberJoined(p.communityId, p.userId));
   on(E.COMMUNITY_ROLE_CHANGED, (p) => `member:${p.communityId}:${p.userId}`, (p) => onRoleChanged(p.communityId, p.userId, p.role, p.actorId));

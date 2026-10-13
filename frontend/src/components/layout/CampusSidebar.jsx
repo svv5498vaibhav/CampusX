@@ -5,6 +5,7 @@ import { Link, NavLink } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { SidebarAccount } from '@/components/layout/SidebarAccount';
+import { MessagesUnreadBadge } from '@/components/messages/MessagesUnreadBadge';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { CAMPUS_NAV } from '@/constants/navigation';
@@ -36,6 +37,7 @@ function SidebarLink({ item }) {
           )}
           <Icon className="size-5 shrink-0" aria-hidden="true" />
           <span className="sr-only lg:not-sr-only">{label}</span>
+          {item.badge === 'messages' && <MessagesUnreadBadge className="absolute top-1 right-1 lg:static lg:ml-auto" />}
         </>
       )}
     </NavLink>

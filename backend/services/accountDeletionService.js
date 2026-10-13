@@ -3,9 +3,13 @@ import { PUBLIC_STATUSES } from '../config/moderationConfig.js';
 import { ACCOUNT_DELETION } from '../config/securityConfig.js';
 import AccountDeletion from '../models/AccountDeletion.js';
 import Achievement from '../models/Achievement.js';
+import Block from '../models/Block.js';
 import Comment from '../models/Comment.js';
 import Community from '../models/Community.js';
 import CommunityMember from '../models/CommunityMember.js';
+import Conversation from '../models/Conversation.js';
+import Follow from '../models/Follow.js';
+import Message from '../models/Message.js';
 import Notification from '../models/Notification.js';
 import NotificationPreference from '../models/NotificationPreference.js';
 import OpportunityApplication from '../models/OpportunityApplication.js';
@@ -41,8 +45,10 @@ import { recordSecurityEvent } from './securityService.js';
  *   deleted     the account itself, its sessions, campus posts (with the comments on them, as when a post is
  *               deleted), its comments, projects, achievements, community memberships, opportunity tracking,
  *               roadmap progress, points ledger and gamification record, notifications it received or caused,
- *               notification settings, search history and recommendation data; its likes, saves and places
- *               on other students' project teams are removed
+ *               notification settings, search history and recommendation data, its follows and blocks (both
+ *               ways), and its direct message conversations with every message in them (the other student's
+ *               copy too: the conversation belonged to both, and the deleted account's words go with it); its
+ *               likes, saves and places on other students' project teams are removed
  *   files       profile photo and cover, post photos/videos, project images and achievement proof are removed
  *               from Cloudinary once no database record points at them (retried by jobs/accountDeletionCleanup.js)
  *   handed on   a community the account owned alone passes to its longest-serving moderator, or is archived
@@ -227,7 +233,10 @@ export async function purgeAccountData(userId, { session = null } = {}) {
   await Community.updateMany({ createdBy: id }, { $set: { createdBy: null } }, quiet);
 
   // 7. Private records: tracking, roadmap, points, notifications (received, and caused for others: they quote
-  //    removed content and name a removed account), settings, search history, recommendation data, sessions.
+  //    removed content and name a removed account), settings, search history, recommendation data, follows and
+  //    blocks both ways, direct messages (before their conversations, so a repeat still finds them), sessions.
+  const conversations = await Conversation.find({ participants: id }).select('_id').session(session).lean();
+  if (conversations.length) count(null, await Message.deleteMany({ conversation: { $in: conversations.map((row) => row._id) } }, options));
   for (const [model, filter] of [
     [OpportunityApplication, { user: id }],
     [StudentRoadmapProgress, { user: id }],
@@ -239,6 +248,9 @@ export async function purgeAccountData(userId, { session = null } = {}) {
     [RecommendationProfile, { user: id }],
     [RecommendationFeedback, { user: id }],
     [RecommendationInteraction, { user: id }],
+    [Follow, { $or: [{ follower: id }, { following: id }] }],
+    [Block, { $or: [{ blocker: id }, { blocked: id }] }],
+    [Conversation, { participants: id }],
     [Session, { user: id }],
   ]) {
     count(null, await model.deleteMany(filter, options));

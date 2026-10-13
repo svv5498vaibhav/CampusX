@@ -12,6 +12,20 @@ export const SOCKET_EVENTS = Object.freeze({
   NOTIFICATION_DELETED: 'notification:deleted',
   // { unreadCount }: the unread count after a read or delete.
   NOTIFICATION_COUNT: 'notification:count',
+  // Follows and blocks. To the student who acted (their other tabs): { userId, relationship, counts, viewerCounts }
+  // where counts are the other student's and viewerCounts their own. Never sent to the other student.
+  RELATIONSHIP_UPDATED: 'relationship:updated',
+  // { followersCount, followingCount, at }: the student's own counts changed because someone followed or
+  // unfollowed them. Deliberately carries no ids: it says the numbers changed, not who changed them. `at` (when
+  // the counts were read) lets the app keep the newest of two updates that cross.
+  FOLLOW_COUNTS: 'follow:counts',
+  // Direct messages, to both participants (each gets the conversation as they see it):
+  // { conversation, message } a new message (the sender's other tabs get it too)
+  MESSAGE_NEW: 'message:new',
+  // { conversationId, userId, lastReadId, lastReadAt } a participant read the conversation up to lastReadId
+  CONVERSATION_READ: 'conversation:read',
+  // { unreadCount } conversations with unread messages, after a new message or a read
+  MESSAGE_UNREAD_COUNT: 'message:unread-count',
   // Admin control center, delivered only to the staff room (moderators and admins). Ids, types and levels
   // only: never a reporter, a content owner or an anonymous author.
   // { reportId, targetType, targetId, reason, priority, at }

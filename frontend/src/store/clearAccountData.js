@@ -4,7 +4,9 @@ import { useAdminStore } from './adminStore';
 import { useAnonymousStore } from './anonymousStore';
 import { useCommunityStore } from './communityStore';
 import { useFeedStore } from './feedStore';
+import { useFollowStore } from './followStore';
 import { useGamificationStore } from './gamificationStore';
+import { useMessageStore } from './messageStore';
 import { useNotificationStore } from './notificationStore';
 import { useOnboardingStore } from './onboardingStore';
 import { useOpportunityStore } from './opportunityStore';
@@ -22,7 +24,9 @@ const STORES_WITH_RESET = [
   useAnonymousStore,
   useCommunityStore,
   useFeedStore,
+  useFollowStore,
   useGamificationStore,
+  useMessageStore,
   useNotificationStore,
   useOnboardingStore,
   useOpportunityStore,

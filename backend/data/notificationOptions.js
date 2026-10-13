@@ -10,6 +10,7 @@
 export const NOTIFICATION_CATEGORIES = Object.freeze([
   { id: 'likes', label: 'Likes', description: 'Likes on your posts, projects and anonymous posts' },
   { id: 'comments', label: 'Comments', description: 'Comments on your posts and anonymous posts' },
+  { id: 'followers', label: 'New followers', description: 'When a student starts following you' },
   { id: 'projects', label: 'Project teams', description: 'Invitations to join a project team' },
   { id: 'achievements', label: 'Achievement reviews', description: 'When CampusX verifies or declines your proof' },
   { id: 'communities', label: 'Communities', description: 'New members, announcements and role changes in your communities' },
@@ -22,7 +23,8 @@ export const EDITABLE_CATEGORY_IDS = Object.freeze(NOTIFICATION_CATEGORIES.filte
 
 /**
  * Notification types. Only activity CampusX actually has is listed: there are no comment replies,
- * mentions, follows or project comments yet, so there are no types for them.
+ * mentions or project comments yet, so there are no types for them. Direct messages have their own unread
+ * count (services/messageService.js) instead of notifications.
  *
  * `policy` decides what happens when the same thing happens again (matched by a dedupe key):
  *   once    never notify twice for the same key (a like, a badge, a level, a reminder)
@@ -33,6 +35,9 @@ export const EDITABLE_CATEGORY_IDS = Object.freeze(NOTIFICATION_CATEGORIES.filte
 export const NOTIFICATION_TYPES = Object.freeze({
   POST_LIKED: { category: 'likes', title: 'New like', policy: 'once' },
   POST_COMMENTED: { category: 'comments', title: 'New comment', policy: 'group' },
+  // Once per follower: unfollowing and following again never notifies twice (an unread one is taken back on
+  // unfollow, like a like). Unfollowing is never announced.
+  STUDENT_FOLLOWED: { category: 'followers', title: 'New follower', policy: 'once' },
   PROJECT_LIKED: { category: 'likes', title: 'Project liked', policy: 'once' },
   PROJECT_TEAM_INVITE: { category: 'projects', title: 'Team invitation', policy: 'once' },
   ACHIEVEMENT_VERIFIED: { category: 'achievements', title: 'Achievement verified', policy: 'once' },
@@ -63,9 +68,10 @@ export const NOTIFICATION_TYPE_IDS = Object.freeze(Object.keys(NOTIFICATION_TYPE
 
 /**
  * What a notification points at. The frontend picks the page for each (constants/notifications.js);
- * badge, level, ranking, profile and safety (the community guidelines) have no id to check.
+ * badge, level, ranking, profile and safety (the community guidelines) have no id to check. `student` is
+ * another student's public profile (e.g. a new follower).
  */
-export const NOTIFICATION_ENTITY_TYPES = Object.freeze(['post', 'project', 'achievement', 'community', 'opportunity', 'anonymous-post', 'badge', 'level', 'ranking', 'profile', 'safety']);
+export const NOTIFICATION_ENTITY_TYPES = Object.freeze(['post', 'project', 'achievement', 'community', 'opportunity', 'anonymous-post', 'badge', 'level', 'ranking', 'profile', 'safety', 'student']);
 
 /** Opportunity fields whose change is worth telling the students who track it. */
 export const OPPORTUNITY_UPDATE_FIELDS = Object.freeze({

@@ -65,6 +65,7 @@ async function availabilityOf(docs) {
     community: (ids) => Community.find({ _id: { $in: ids } }),
     opportunity: (ids) => Opportunity.find({ _id: { $in: ids }, status: { $in: LISTED_OPPORTUNITY_STATUSES } }),
     'anonymous-post': (ids) => AnonymousPost.find({ _id: { $in: ids }, status: 'active' }),
+    student: (ids) => User.find({ _id: { $in: ids }, status: ACCOUNT_STATUSES.ACTIVE }),
   };
   const available = new Set();
   await Promise.all(

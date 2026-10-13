@@ -29,6 +29,8 @@ export const ROUTES = Object.freeze({
   BADGES: '/badges',
   POINT_ACTIVITY: '/gamification/activity',
   NOTIFICATIONS: '/notifications',
+  MESSAGES: '/messages',
+  CONVERSATION: '/messages/:conversationId',
   SEARCH: '/search',
   SAFETY: '/safety',
   COMMUNITY_GUIDELINES: '/community-guidelines',
@@ -55,6 +57,9 @@ export const postPath = (postId) => `/post/${encodeURIComponent(postId)}`;
 
 /** Another student's public profile. */
 export const profilePath = (userId) => `/profile/${encodeURIComponent(userId)}`;
+
+/** One direct message conversation. */
+export const conversationPath = (conversationId) => `/messages/${encodeURIComponent(conversationId)}`;
 
 /** The search page for a query, optionally on one category tab ("students", "projects", ...). */
 export const searchPath = (query, type) => {

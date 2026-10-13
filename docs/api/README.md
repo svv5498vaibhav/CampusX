@@ -357,6 +357,12 @@ The **owner's view** (`GET /profile` and every change) adds `email`, `rollNumber
 `completion: { percent, isComplete, items: [{ id, label, done }] }`. Other students never see those.
 Cloudinary public ids, password data and security fields are never returned.
 
+`GET /profile` and `GET /profile/:userId` also return `social: { followersCount, followingCount, relationship }`
+(see [Follows and blocks](#follows-and-blocks)). `relationship` is `null` on your own profile; on someone
+else's it is `{ isFollowing, followsYou, blockedByYou, canFollow, canMessage }`. A block by the other student is
+never named: it only shows as `canFollow: false, canMessage: false`. The profile changes (`PUT`, photo, cover)
+don't repeat `social`.
+
 ### `GET /profile` · `GET /profile/:userId` · `GET /profile/options`
 
 - `/profile`: the signed-in student's own profile (from the session, never an id).
@@ -687,7 +693,7 @@ a missing one (404 "Notification not found.").
 | `PATCH` | `/notifications/read-all` | → `{ updated, unreadCount }` |
 | `DELETE` | `/notifications/:id` | → `{ id, unreadCount }` |
 | `DELETE` | `/notifications/read` | Clears every read notification → `{ deleted, unreadCount }` |
-| `GET` | `/notifications/preferences` | `{ preferences: { likes, comments, projects, achievements, communities, opportunities, rankings, system }, categories }`. All on by default |
+| `GET` | `/notifications/preferences` | `{ preferences: { likes, comments, followers, projects, achievements, communities, opportunities, rankings, system }, categories }`. All on by default |
 | `PUT` | `/notifications/preferences` | Only the categories to change, as booleans: `{ "likes": false }`. `system` can't be turned off (422) |
 
 A notification: `{ id, type, category, title, message, actor, entity: { type, id, available }, metadata,
@@ -695,7 +701,8 @@ count, isRead, readAt, eventAt, createdAt }`. `actor` is a short public summary 
 avatarUrl`) or `null` for CampusX messages and **everything from the Anonymous Zone**; a suspended actor
 shows as "A CampusX student". `entity.available: false` means the content was deleted or removed ("This
 content is no longer available"). `count` > 1 marks a grouped notification ("Aarav left 3 comments on your
-post"). Types: `POST_LIKED`, `POST_COMMENTED`, `PROJECT_LIKED`, `PROJECT_TEAM_INVITE`,
+post"). Types: `POST_LIKED`, `POST_COMMENTED`, `STUDENT_FOLLOWED` ("Aarav Mehta started following you.",
+`entity: { type: "student", id: <follower> }`, category `followers`), `PROJECT_LIKED`, `PROJECT_TEAM_INVITE`,
 `ACHIEVEMENT_VERIFIED`, `ACHIEVEMENT_REJECTED`, `COMMUNITY_JOINED`, `COMMUNITY_ANNOUNCEMENT`,
 `COMMUNITY_ACTIVITY`, `OPPORTUNITY_UPDATED`, `OPPORTUNITY_STATUS_CHANGED`, `OPPORTUNITY_DEADLINE`,
 `ANONYMOUS_POST_LIKED`, `ANONYMOUS_POST_COMMENTED`, `BADGE_EARNED`, `LEVEL_UP`, `RANK_CHANGED`,
@@ -718,6 +725,11 @@ refreshes the token and reconnects. Events (server → client only):
 | `notification:read` | `{ ids, readAt }` or `{ all: true, readAt }` |
 | `notification:deleted` | `{ ids }` or `{ allRead: true }` (also when a like is taken back before it was read) |
 | `notification:count` | `{ unreadCount }` |
+| `relationship:updated` | To the student who followed, unfollowed, blocked or unblocked (all their tabs): the same body the REST call answered with |
+| `follow:counts` | `{ followersCount, followingCount, at }`: your own counts changed because someone followed or unfollowed you (no ids: never who) |
+| `message:new` | `{ conversation, message }` to both participants, each from their own side (the sender's other tabs too) |
+| `conversation:read` | `{ conversationId, userId, lastReadId, lastReadAt }` to both participants ("Seen", other tabs) |
+| `message:unread-count` | `{ unreadCount }`: conversations with unread messages |
 
 Sockets only deliver what was already saved; the REST API above stays the source of truth.
 
@@ -875,6 +887,78 @@ of your current roadmap.`; a malformed id → 422.
 Phase 10 ledger (key `user:action:roadmap-semester:<n>`). Undoing a milestone or switching to a goal for which
 the semester is incomplete reverses it; completing it again reinstates the same award (never a second one).
 The first award also earns the **Pathfinder** badge. Single milestones earn nothing.
+
+## Follows and blocks
+
+Every route requires a bearer token. **The student acting is always the signed-in one**: the URL only names the
+other student, so no request can change a relationship between two other students. Malformed ids → 422;
+unknown or inactive students (suspended, blocked, closed) → 404 `We couldn't find that student.`, like profiles.
+Responses are `Cache-Control: no-store`. Rules live in `backend/data/socialOptions.js`.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| `POST` | `/users/:userId/follow` | 201 when the follow was created, 200 when it already existed (`changed: false`). Yourself → 422; a block either way → 403 |
+| `DELETE` | `/users/:userId/follow` | 200; `changed: false` when you weren't following. No notification is sent |
+| `GET` | `/users/:userId/followers?limit&cursor&search` | Newest first, 20 per page (max 50). → `{ students, total, pagination: { limit, hasMore, nextCursor } }` |
+| `GET` | `/users/:userId/following?limit&cursor&search` | Same shape |
+| `GET` | `/users/:userId/relationship` | `{ userId, relationship, counts, viewerCounts, at }` |
+| `GET` | `/users/follow-status?ids=a,b,c` | Up to 50 ids → `{ statuses: { [id]: { isFollowing, canFollow } } }` (inactive or unknown ids left out). Used by student cards |
+| `POST` | `/users/:userId/block` | Blocks for follows and messages, and ends follows in both directions. Repeating it is harmless |
+| `DELETE` | `/users/:userId/block` | Unblocks (follows are not restored) |
+
+Follow, unfollow, block and unblock answer `{ userId, relationship, counts, viewerCounts, at, changed }`:
+`counts` are the other student's `{ followersCount, followingCount }`, `viewerCounts` your own, `at` the server
+time they were read.
+
+**List rows** are public student summaries (`id, firstName, lastName, avatarUrl, college, branch, semester`, never
+an email or roll number) plus `isYou`, `isFollowing` and `canFollow` from your point of view and `since` (when
+the relationship began). `cursor` is the previous page's `nextCursor`; `search` (up to 60 characters) matches the
+start of first or last names, every word must match, and is literal text.
+
+**Counts and duplicates**: a relationship is stored once (unique index on follower + following), so repeated or
+simultaneous follow requests create one relationship, one notification and one count. Counts are read from the
+relationships themselves and include only active accounts: a suspended, blocked or closed account drops out of
+other students' counts and lists, and comes back if the account is restored (`followerActive` /
+`followingActive`, kept in step when staff change an account's status).
+
+**Notifications**: a new follow notifies the followed student once per follower (`STUDENT_FOLLOWED`, category
+`followers`, which they can turn off). Unfollowing before it was read takes it back; unfollowing is never
+announced. **Rate limits** per student: 120 follow/unfollow and 30 block/unblock requests per 15 minutes (429).
+**Account deletion** removes the account's follows and blocks in both directions.
+
+## Direct messages
+
+One-to-one conversations between signed-in students. Every conversation is looked up among **the signed-in
+student's own**: anyone else's conversation answers 404 `We couldn't find that conversation.` for reading,
+sending and marking read alike. The sender of a message is always the signed-in student (ids in a body are
+ignored). Responses are `Cache-Control: no-store`.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET` | `/conversations?limit&cursor` | Your inbox: conversations with at least one message, latest first, 20 per page (max 50). → `{ conversations, unreadCount, pagination: { limit, hasMore, nextCursor } }` |
+| `GET` | `/conversations/unread-count` | `{ unreadCount }`: conversations with unread messages |
+| `POST` | `/conversations` | `{ userId }` → the conversation with that student: 201 `created: true` the first time, 200 afterwards. Yourself → 422; inactive/unknown → 404; a block either way → 403 |
+| `GET` | `/conversations/:conversationId` | `{ conversation }` |
+| `GET` | `/conversations/:conversationId/messages?limit&before` | 30 per page (max 50), oldest first within a page; `before` = the previous page's `nextCursor` (older messages) |
+| `POST` | `/conversations/:conversationId/messages` | `{ text, clientId? }` → 201 `{ message, conversation, duplicate: false }`; a retry with the same `clientId` → 200 with the saved message (`duplicate: true`) |
+| `POST` | `/conversations/:conversationId/read` | Marks it read up to the latest message → `{ conversationId, userId, lastReadId, lastReadAt, changed, unreadCount }` |
+
+**A conversation**: `{ id, participant, lastMessage: { id, preview, at, isMine } | null, lastMessageAt,
+unreadCount, lastReadId, otherLastReadId, canMessage, createdAt }`. `participant` is the other student's public
+summary, or `{ id: null, firstName: "CampusX", lastName: "student", unavailable: true }` when their account isn't
+active. `otherLastReadId` is how far they have read ("Seen"). **A message**: `{ id, conversationId, senderId,
+isMine, text, createdAt, clientId? }` (`clientId` only to its sender).
+
+**Rules**: two students share exactly one conversation (unique pair key), even when both open it at once; an
+opened conversation stays out of both inboxes until its first message. Text is plain text, 1–2000 characters
+after trimming (control characters removed); `clientId` is 8–64 of `A–Z a–z 0–9 _ -`. Sending needs the other
+account to be active (else 403) and no block in either direction (403); the history stays readable. Students
+under a Trust & Safety posting pause can't send (403), and messages with unsafe links (`javascript:` and similar,
+links hiding their address) are refused (422). Messaging never follows anyone. Messages are saved first, then
+delivered over Socket.IO (`message:new`, `conversation:read`, `message:unread-count`); direct messages don't
+create notifications. **Rate limits** per student: 30 messages a minute, 40 conversation opens an hour, 600
+read marks per 15 minutes (429). **Account deletion** removes the account's conversations with every message in
+them.
 
 ## Admin control center
 

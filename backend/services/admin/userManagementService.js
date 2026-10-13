@@ -16,6 +16,7 @@ import ApiError from '../../utils/ApiError.js';
 import { toObjectId } from '../../utils/objectId.js';
 import { CAMPUS_EVENTS, emitCampusEvent } from '../campusEvents.js';
 import { getOnboardingOptions } from '../campusOptionsService.js';
+import { syncFollowVisibility } from '../followService.js';
 import { revokeSessionById } from '../sessionService.js';
 import { assertPermission, campusLabels, escapeRegex, pageOf } from './adminAccess.js';
 import { historyFor, recordAdminAction } from './auditService.js';
@@ -266,6 +267,8 @@ export async function changeUserStatus(actor, userId, { action, reason = '' }) {
     const sessions = await Session.find({ user: id, revokedAt: null }).select('_id').lean();
     await Promise.all(sessions.map((session) => revokeSessionById(session._id, REVOKE_REASONS.ACCOUNT_INACTIVE)));
   }
+  // Inactive accounts drop out of other students' follower counts and lists, and come back when restored.
+  await syncFollowVisibility(id);
   emitCampusEvent(CAMPUS_EVENTS.STUDENT_PROFILE_CHANGED, { userId: id.toString() });
   await recordAdminAction(actor, { action: rule.audit, targetType: 'user', targetId: id, previousStatus: account.status, newStatus: rule.to, reason });
   return getUserDetail(actor, id.toString());

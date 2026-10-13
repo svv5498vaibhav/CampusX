@@ -19,6 +19,8 @@ import moderationRoutes from './moderationRoutes.js';
 import reportRoutes from './reportRoutes.js';
 import recommendationRoutes from './recommendationRoutes.js';
 import roadmapRoutes from './roadmapRoutes.js';
+import userRoutes from './userRoutes.js';
+import conversationRoutes from './conversationRoutes.js';
 
 /*
  * Version 1 API, mounted at /api/v1. Feature routers are added here as each phase lands.
@@ -44,6 +46,8 @@ router.use('/reports', reportRoutes);
 router.use('/moderation', moderationRoutes);
 router.use('/recommendations', recommendationRoutes);
 router.use('/roadmap', roadmapRoutes);
+router.use('/users', userRoutes);
+router.use('/conversations', conversationRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;

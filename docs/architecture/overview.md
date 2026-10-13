@@ -975,6 +975,49 @@ A semester-by-semester career path on the student's own profile (`/profile/roadm
   would not get it automatically), an editor with the same link checks on save, audit rows, and a version bump
   that keeps students' stored milestone ids valid.
 
+## Follows, blocks and direct messages
+
+Follow / Following on profiles, lists and student cards; student-to-student blocks; one-to-one conversations.
+API details: [docs/api/README.md](../api/README.md#follows-and-blocks).
+
+| File | Responsibility |
+| --- | --- |
+| `data/socialOptions.js` | Page sizes, message limits, rate limits (`SOCIAL_RATE_LIMITS`) |
+| `models/Follow.js` | `{ follower, following, followerActive, followingActive, createdAt }`; unique on follower + following; `{ following, followerActive, _id }` and `{ follower, followingActive, _id }` for counts and cursor lists |
+| `models/Block.js` | `{ blocker, blocked }`; unique pair, plus `blocked` for account deletion |
+| `models/Conversation.js` | Two `participants`, unique `pairKey` ("smaller id:larger id"), per-member `lastReadId` / `lastReadAt`, `lastMessage` preview and `lastMessageAt` (null until the first message, so empty conversations are in no inbox) |
+| `models/Message.js` | `{ conversation, sender, text, clientId? }`; `{ conversation, _id }` for history and unread counts; unique `{ conversation, sender, clientId }` for retried sends |
+| `services/followService.js` | The only writer of follows and blocks: follow/unfollow (upsert on the unique index; re-checks blocks and status after inserting), lists (cursor on `_id`, name search through a `$lookup` with a time limit), follow status for cards, block/unblock (ends follows both ways), `syncFollowVisibility()` (called by `admin/userManagementService.changeUserStatus`), live updates |
+| `services/messageService.js` | The only reader/writer of conversations and messages: `loadOwnConversation()` (participant filter in the query itself, 404 otherwise), open (find or create on `pairKey`), inbox, history, send (retry → saved message; active account, blocks, `assertCanPublish`, unsafe links), mark read (forward only), unread conversation count, delivery |
+| `routes/userRoutes.js`, `routes/conversationRoutes.js` + `controllers/followController.js`, `controllers/messageController.js`, `validators/socialValidator.js` | `/api/v1/users/...` and `/api/v1/conversations/...`: `authenticate`, per-student limiters, validated ids and bodies (only `text` and `clientId` reach `sendMessage`) |
+| `services/notificationEvents.js` (`onFollowChanged`) | `STUDENT_FOLLOWED` / `STUDENT_UNFOLLOWED` → `STUDENT_FOLLOWED` notification once per follower (dedupe key `follower:<id>`), withdrawn when unfollowed unread |
+
+- **Counts come from the relationships.** `countDocuments` on the indexes above, never a stored counter, so
+  duplicates are impossible (unique index) and there is nothing to drift. The `…Active` flags keep suspended,
+  blocked or closed accounts out of counts and lists without deleting the relationship.
+- **Concurrency.** Follows and conversations are created with an upsert / insert on a unique key, and a duplicate-key
+  error means "someone else just created it" (the existing one is used). Read pointers only move forward
+  (`lastReadId` compared in the update filter), the inbox preview only moves to a newer message, and a retried send
+  is answered from the unique `clientId`.
+- **Realtime.** Sockets stay delivery-only (`sockets/socketEvents.js`): `relationship:updated` to the acting
+  student's own tabs, `follow:counts` (numbers only, never who) to the student whose counts changed,
+  `message:new` / `conversation:read` / `message:unread-count` to the two participants' rooms. Results carry `at`
+  (server time) so the app ignores a late update older than an answer it already has.
+- **Account deletion** (`accountDeletionService.purgeAccountData`, step 7) removes follows and blocks in both
+  directions, and the account's conversations with their messages (messages first, so a repeat still finds them).
+- **Frontend**: `store/followStore.js` (one entry per student shared by every screen; optimistic follow with exact
+  rollback; one request per student at a time; batched follow status for cards), `store/messageStore.js` (inbox,
+  threads with cancellable loads, optimistic sends with `clientId` and retry, read marking while a chat is visible,
+  resync after a reconnect), `hooks/useNotificationsSocket.js` (feeds all three stores from the one socket).
+  `components/social/FollowButton.jsx` holds the follow animation (spring press, glow, six "+" sparks, drawn tick,
+  label roll; `useReducedMotion` → crossfade only), `AnimatedCount`, `FollowStats`, `FollowListModal` (the shared
+  `Modal`, tabs with arrow keys, `?list=` in the URL, staggered rows, infinite scroll, server-side search),
+  `MessageButton`, `BlockDialog`. `pages/messages/MessagesPage.jsx` + `components/messages/` (inbox, chat, thread
+  with day separators, "Seen", load-earlier keeping the scroll position, composer).
+- **Not built**: message deletion/editing, attachments, typing indicators (clients never send over sockets),
+  message requests or "who can message me" settings, hiding a blocked student's posts elsewhere on CampusX, and
+  a list of blocked students (unblock is on the student's profile or in the chat).
+
 ## Account deletion
 
 A student deletes their own account from the Danger Zone at the bottom of `/profile`. API details and the full

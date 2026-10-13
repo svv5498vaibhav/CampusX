@@ -4,11 +4,12 @@ import { EllipsisVertical } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 /**
- * The ⋮ menu on a post. items: [{ id, label, icon, onSelect, danger? }].
+ * The ⋮ menu on a post (also on profiles and chats). items: [{ id, label, icon, onSelect, danger? }].
+ * `triggerClassName` replaces the button's size and look (e.g. to match taller buttons beside it).
  * Keyboard: Enter/Space/↓ opens and focuses the first item, ↑/↓/Home/End move, Escape or Tab
  * closes and returns focus to the button.
  */
-export function PostMenu({ items, label = 'Post options' }) {
+export function PostMenu({ items, label = 'Post options', triggerClassName }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
@@ -61,7 +62,7 @@ export function PostMenu({ items, label = 'Post options' }) {
             setOpen(true);
           }
         }}
-        className="grid size-9 place-items-center rounded-xl text-ink-subtle transition-colors hover:bg-surface-muted hover:text-ink aria-expanded:bg-surface-muted aria-expanded:text-ink"
+        className={cn('grid place-items-center transition-colors', triggerClassName ?? 'size-9 rounded-xl text-ink-subtle hover:bg-surface-muted hover:text-ink aria-expanded:bg-surface-muted aria-expanded:text-ink')}
       >
         <EllipsisVertical className="size-5" aria-hidden="true" />
       </button>

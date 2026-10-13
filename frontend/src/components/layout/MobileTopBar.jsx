@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { AccountMenu } from '@/components/layout/AccountMenu';
+import { MessagesUnreadBadge, MessagesUnreadDot } from '@/components/messages/MessagesUnreadBadge';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { Modal } from '@/components/ui';
@@ -35,11 +36,13 @@ export function MobileTopBar() {
           aria-label="Explore"
           title="Explore"
           className={cn(
-            'grid size-10 place-items-center rounded-xl transition-colors',
+            'relative grid size-10 place-items-center rounded-xl transition-colors',
             inExplore ? 'bg-primary-soft text-primary-soft-fg' : 'text-ink-muted hover:bg-surface-muted hover:text-ink',
           )}
         >
           <LayoutGrid className="size-5" aria-hidden="true" />
+          {/* Messages live in Explore on phones: a dot says something is unread there. */}
+          <MessagesUnreadDot className="top-1.5 right-1.5" />
         </button>
         <ThemeToggle />
         <AccountMenu />
@@ -48,20 +51,21 @@ export function MobileTopBar() {
       <Modal open={exploring} onClose={() => setExploring(false)} title="Explore CampusX" size="sm">
         <nav aria-label="Explore">
           <ul className="grid grid-cols-2 gap-2">
-            {EXPLORE_ITEMS.map(({ to, label, icon: Icon }) => (
+            {EXPLORE_ITEMS.map(({ to, label, icon: Icon, badge }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   onClick={() => setExploring(false)}
                   className={({ isActive }) =>
                     cn(
-                      'flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition-colors',
+                      'relative flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition-colors',
                       isActive ? 'border-primary bg-primary-soft text-primary-soft-fg' : 'border-line text-ink hover:border-line-strong',
                     )
                   }
                 >
                   <Icon className="size-6 text-primary" aria-hidden="true" />
                   {label}
+                  {badge === 'messages' && <MessagesUnreadBadge className="absolute top-2 right-2" />}
                 </NavLink>
               </li>
             ))}

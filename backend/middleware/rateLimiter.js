@@ -7,6 +7,7 @@ import { RECOMMENDATION_RATE_LIMITS } from '../config/recommendationConfig.js';
 import { ROADMAP_RATE_LIMITS } from '../data/roadmapOptions.js';
 import { AUTH_RATE_LIMITS } from '../config/securityConfig.js';
 import { SEARCH_RATE_LIMITS } from '../data/searchOptions.js';
+import { SOCIAL_RATE_LIMITS } from '../data/socialOptions.js';
 import ApiError from '../utils/ApiError.js';
 import { recordRateLimitHit } from '../services/securityService.js';
 import { SharedCounterStore } from '../utils/sharedCounterStore.js';
@@ -232,6 +233,21 @@ const adminLimiter = (kind) => {
 export const adminRateLimiter = adminLimiter('requests');
 export const adminActionRateLimiter = adminLimiter('actions');
 export const adminRevealRateLimiter = adminLimiter('reveal');
+
+/*
+ * Follows, blocks and direct messages (data/socialOptions.js), per student on the shared store. Every request
+ * counts, including refused ones.
+ */
+const socialLimiter = (kind) => {
+  const { windowMinutes, max, message } = SOCIAL_RATE_LIMITS[kind];
+  return createRateLimiter({ name: `social-${kind}`, windowMs: windowMinutes * MINUTE, limit: max, keyGenerator: perStudent, message });
+};
+
+export const followRateLimiter = socialLimiter('follows');
+export const blockRateLimiter = socialLimiter('blocks');
+export const messageRateLimiter = socialLimiter('messages');
+export const messageReadRateLimiter = socialLimiter('reads');
+export const conversationRateLimiter = socialLimiter('conversations');
 
 /** Semester Roadmap changes (milestone status, goal, selected semester), per student on the shared store. */
 export const roadmapUpdateRateLimiter = createRateLimiter({

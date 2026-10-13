@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { anonymousPostPath } from './anonymous';
 import { opportunityPath } from './opportunities';
-import { communityPath, postPath, ROUTES } from './routes';
+import { communityPath, postPath, profilePath, ROUTES } from './routes';
 import { achievementPath, projectPath } from './showcase';
 
 /*
@@ -33,6 +33,13 @@ export const SOCKET_EVENTS = Object.freeze({
   NOTIFICATION_READ: 'notification:read',
   NOTIFICATION_DELETED: 'notification:deleted',
   NOTIFICATION_COUNT: 'notification:count',
+  // Follows: the signed-in student's own action in another tab, and their own counts changing.
+  RELATIONSHIP_UPDATED: 'relationship:updated',
+  FOLLOW_COUNTS: 'follow:counts',
+  // Direct messages.
+  MESSAGE_NEW: 'message:new',
+  CONVERSATION_READ: 'conversation:read',
+  MESSAGE_UNREAD_COUNT: 'message:unread-count',
   // Admin control center (delivered only to signed-in moderators and admins).
   ADMIN_NEW_REPORT: 'admin:newReport',
   ADMIN_NEW_MODERATION_CASE: 'admin:newModerationCase',
@@ -53,6 +60,7 @@ const TONES = {
 export const NOTIFICATION_PRESENTATION = {
   POST_LIKED: { icon: Heart, tone: 'primary' },
   POST_COMMENTED: { icon: MessageCircle, tone: 'primary' },
+  STUDENT_FOLLOWED: { icon: UserPlus, tone: 'primary' },
   PROJECT_LIKED: { icon: Heart, tone: 'primary' },
   PROJECT_TEAM_INVITE: { icon: UserPlus, tone: 'primary' },
   ACHIEVEMENT_VERIFIED: { icon: BadgeCheck, tone: 'accent' },
@@ -112,6 +120,8 @@ export function notificationLink(notification) {
       return ROUTES.PROFILE;
     case 'safety':
       return ROUTES.SAFETY;
+    case 'student':
+      return profilePath(entity.id);
     default:
       return null;
   }

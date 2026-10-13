@@ -45,6 +45,11 @@ export function ProfileView({
   renderAside,
   // Optional full-width block right under the header (the owner's Semester Roadmap entry).
   banner,
+  // Follower counts under the name, and when the viewer just followed this student (the photo glows once).
+  stats,
+  celebrateAt,
+  // Optional ⋮ menu for the header (another student's profile: Report, Block).
+  menu,
 }) {
   const theme = themeStyles(profile.theme);
   const sectionHeading = headingAs === 'h1' ? 'h2' : 'h3';
@@ -91,6 +96,9 @@ export function ProfileView({
         onChangePhoto={onChangePhoto}
         onChangeCover={onChangeCover}
         actions={actions}
+        menu={menu}
+        stats={stats}
+        celebrateAt={celebrateAt}
         headingAs={headingAs}
       />
 

@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Camera, Palette, Pencil } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { CampusJourneyCard } from '@/components/gamification/CampusJourneyCard';
 import { DangerZoneCard } from '@/components/profile/DangerZoneCard';
 import { ImageUploadDialog } from '@/components/profile/ImageUploadDialog';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { RoadmapProfileCard } from '@/components/roadmap/RoadmapProfileCard';
+import { FollowListModal } from '@/components/social/FollowListModal';
+import { FollowStats } from '@/components/social/FollowStats';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Alert, Button, ErrorState, Loader } from '@/components/ui';
 import { ROUTES } from '@/constants/routes';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { useFollowStore } from '@/store/followStore';
 import { useProfileStore } from '@/store/profileStore';
 
 // Where each completeness item is edited.
+const LISTS = ['followers', 'following'];
 const EDIT_SECTION = { name: 'about', bio: 'about', skills: 'skills', interests: 'interests', college: 'campus', branch: 'campus', semester: 'campus' };
 
 /** The signed-in student's own profile (always loaded from the session, never by id). */
@@ -23,6 +27,10 @@ export default function ProfilePage() {
   const store = useProfileStore();
   const { ownProfile: profile, ownStatus, ownError, options } = store;
   const [dialog, setDialog] = useState(null); // 'avatar' | 'cover' | null
+  // Your followers / following list (?list=…), opened from the counts under your name.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const list = LISTS.includes(searchParams.get('list')) ? searchParams.get('list') : null;
+  const openList = (kind) => setSearchParams(kind ? { list: kind } : {}, { replace: true, preventScrollReset: true });
   // "Profile updated" after saving the editor. Read once, then cleared so a reload won't repeat it.
   const [justSaved] = useState(() => Boolean(location.state?.saved));
 
@@ -32,6 +40,11 @@ export default function ProfilePage() {
     if (location.state?.saved) navigate(location.pathname, { replace: true, state: null });
     // Load once on arrival; store actions are stable.
   }, []);
+
+  // Your follower counts (GET /profile carries them) feed the shared follow state, kept live from there on.
+  useEffect(() => {
+    if (profile?.social) useFollowStore.getState().seedProfile(profile);
+  }, [profile]);
 
   if (!profile) {
     return (
@@ -63,6 +76,7 @@ export default function ProfilePage() {
         onChangeCover={() => setDialog('cover')}
         renderAside={(theme, headingAs) => <CampusJourneyCard theme={theme} headingAs={headingAs} />}
         banner={<RoadmapProfileCard />}
+        stats={<FollowStats userId={profile.id} onOpen={openList} />}
         onCompletionAction={(item) => (item === 'photo' ? setDialog('avatar') : goToEditor(EDIT_SECTION[item]))}
         actions={
           <>
@@ -81,6 +95,8 @@ export default function ProfilePage() {
 
       {/* Last on the page, after every profile section and setting. */}
       <DangerZoneCard />
+
+      <FollowListModal userId={profile.id} name={fullName} kind={list} onKindChange={openList} onClose={() => openList(null)} />
 
       {options && (
         <>

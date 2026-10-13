@@ -43,6 +43,7 @@ const RankingPage = lazy(() => import('@/pages/rankings/RankingPage'));
 const BadgesPage = lazy(() => import('@/pages/gamification/BadgesPage'));
 const PointActivityPage = lazy(() => import('@/pages/gamification/PointActivityPage'));
 const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage'));
+const MessagesPage = lazy(() => import('@/pages/messages/MessagesPage'));
 const SearchPage = lazy(() => import('@/pages/search/SearchPage'));
 const DiscoverPage = lazy(() => import('@/pages/DiscoverPage'));
 const SafetyPage = lazy(() => import('@/pages/SafetyPage'));
@@ -179,6 +180,8 @@ export const router = createBrowserRouter([
               { path: ROUTES.BADGES, element: <BadgesPage /> },
               { path: ROUTES.POINT_ACTIVITY, element: <PointActivityPage /> },
               { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
+              { path: ROUTES.MESSAGES, element: <MessagesPage /> },
+              { path: ROUTES.CONVERSATION, element: <MessagesPage /> },
               { path: ROUTES.SEARCH, element: <SearchPage /> },
               { path: ROUTES.DISCOVER, element: <DiscoverPage /> },
               { path: ROUTES.SAFETY, element: <SafetyPage /> },

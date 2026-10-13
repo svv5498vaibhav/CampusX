@@ -1,4 +1,4 @@
-import { Award, Compass, FolderKanban, House, Telescope, Trophy, UserRound, UsersRound, VenetianMask } from 'lucide-react';
+import { Award, Compass, FolderKanban, House, MessageCircle, Telescope, Trophy, UserRound, UsersRound, VenetianMask } from 'lucide-react';
 import { ROUTES } from './routes';
 
 /**
@@ -10,6 +10,8 @@ import { ROUTES } from './routes';
 export const CAMPUS_NAV = [
   { label: 'Home', to: ROUTES.HOME, icon: House, inBottomNav: true },
   { label: 'Discover', to: ROUTES.DISCOVER, icon: Telescope, inBottomNav: false },
+  // Shows the unread conversation count (components/messages/MessagesUnreadBadge).
+  { label: 'Messages', to: ROUTES.MESSAGES, icon: MessageCircle, inBottomNav: false, badge: 'messages' },
   { label: 'Communities', shortLabel: 'Community', to: ROUTES.COMMUNITIES, icon: UsersRound, inBottomNav: true },
   { label: 'Projects', to: ROUTES.PROJECTS, icon: FolderKanban, inBottomNav: false },
   { label: 'Achievements', to: ROUTES.ACHIEVEMENTS, icon: Award, inBottomNav: false },

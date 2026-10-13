@@ -43,7 +43,11 @@ Mobile), adapted to their branch track, with objectives, suggested projects and 
 mark milestones in progress or complete; progress, semester completion and the next suggested milestone are
 calculated by the server from their saved records, survive refresh and sign-in, and changing goal never deletes
 progress. Completing a whole semester earns XP once per semester. These are suggestions by CampusX, not an
-official syllabus. See the [roadmap](#10-future-phase-roadmap).
+official syllabus. Students can **follow** each other (Follow / Following on profiles, student cards and lists,
+with a short celebratory animation, follower and following counts that open paginated, searchable lists, and a
+"started following you" notification) and send **direct messages** (a Message button on every profile opens the
+one conversation two students share; `/messages` has the inbox, live delivery, unread counts and "Seen"). A
+student can block another from following and messaging them. See the [roadmap](#10-future-phase-roadmap).
 
 ---
 
@@ -122,6 +126,10 @@ CampusX/
 │       │   │                    SearchFilters, SearchResultSection, Student/Project/Community/Opportunity/
 │       │   │                    AchievementSearchCard, PostSearchResult, SearchEmptyState, SearchSkeleton,
 │       │   │                    RecentSearches
+│       │   ├── social/          Follows: FollowButton (the follow animation), AnimatedCount, FollowStats,
+│       │   │                    FollowListModal (followers/following), MessageButton, BlockDialog
+│       │   ├── messages/        Direct messages: ConversationList, ChatPanel, MessageThread, MessageComposer,
+│       │   │                    MessagesUnreadBadge
 │       │   ├── roadmap/         Semester Roadmap: RoadmapProfileCard (profile button), RoadmapHero, RoadmapIllustration,
 │       │   │                    RoadmapProgressRing, NextTaskCard, SemesterTimeline (journey + semester tabs),
 │       │   │                    SemesterPanel (transitions), SemesterOverviewCard, MilestoneCard,
@@ -457,6 +465,7 @@ frontend. To add a college, append an entry with a new, permanent `id` (for exam
 | 15 | Admin Control Center: a separate black/dark-purple/neon-violet console at `/admin` for moderators and admins; permission-based access enforced on every API request; command-center dashboard (real counts, weekly trends, platform activity, content creation, case status, risk radar, threat monitor, audit stream, real system status); moderation queue with filters and case review (approve, flag, restrict, remove, escalate, warn; confirmations and reasons for dangerous actions; one decision at a time); report review/resolve/reject/escalate; student management (search, suspend/block/activate/deactivate with session revocation, moderation and report history); content, community and opportunity management; 7/30/90-day analytics; audit log of every admin and moderation action; audited anonymous-author reveal; live admin alerts over Socket.IO; responsive (sidebar, tablet rail, phone drawer) | **Done** |
 | 16 | Security and production hardening: strict startup checks for production secrets, origins and token lifetimes; API security headers (CSP, frame denial, HSTS in production) and no-store responses; request screening (prototype-pollution keys, NUL bytes, nesting); the same sign-in lock for unknown emails (no account enumeration) and suspicious sign-in events; refresh-token reuse, lockouts, limit hits and abuse patterns in the admin audit log (anonymity kept); upload name, double-extension and PDF active-content checks, malformed uploads 400; staff socket room re-checked against the database; log redaction; admin-only security status endpoint; security checklist and test suites | **Done** |
 | + | Semester Roadmap (feature): "🎓 Semester Roadmap" button on the profile → `/profile/roadmap`; all eight semesters as an animated journey (keyboard tabs, direction-aware transitions, staggered milestones, reduced-motion support); seven career goals adapted to three branch tracks, changeable without losing progress; milestones with category, difficulty, effort, objectives, prerequisites, suggested projects and checked https resources; in-progress / complete / undo saved per student with duplicate-safe updates; server-calculated semester and overall progress, next milestone, skill mastery; semester completion celebration and badge; XP once per semester through the Phase 10 ledger and a Pathfinder badge | **Done** |
+| + | Follows and direct messages (feature): Follow / Following / hover Unfollow on profiles, followers/following lists and student cards, with a spring-and-glow follow animation (sparks, drawn tick, rolling count, avatar ring; reduced-motion version) and optimistic updates rolled back on failure; counts read from unique relationships, active accounts only; paginated, searchable followers/following dialog; "started following you" notification once per follower; student-to-student blocks for follows and messages; one conversation per pair of students, inbox with unread counts, history pages, live delivery and read receipts over Socket.IO, retry-safe sends, participant-only access, rate limits, posting-pause and unsafe-link checks; account deletion removes it all | **Done** |
 
 The order and numbering of upcoming phases are set at the start of each phase.
 

@@ -10,6 +10,8 @@ const notificationPreferenceSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     likes: { type: Boolean, default: true },
     comments: { type: Boolean, default: true },
+    // Missing on records saved before follows existed: treated as on, like every other category.
+    followers: { type: Boolean, default: true },
     projects: { type: Boolean, default: true },
     achievements: { type: Boolean, default: true },
     communities: { type: Boolean, default: true },

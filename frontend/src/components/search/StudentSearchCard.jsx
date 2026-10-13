@@ -1,18 +1,29 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { FollowButton } from '@/components/social/FollowButton';
 import { Avatar, Badge, Button } from '@/components/ui';
 import { searchResultPath } from '@/constants/search';
+import { useAuthStore } from '@/store/authStore';
+import { useFollowStore } from '@/store/followStore';
 import { getFullName } from '@/utils/string';
 
 /**
  * A student in search results: photo, name, college, branch • semester and top skills. Public profile
- * details only (never an email or roll number). "View Profile" is the only action: CampusX has no
- * connection requests. Discover adds a recommendation `reason` and a `menu` (both optional).
+ * details only (never an email or roll number). Follow (shared follow state, asked for in one batch with
+ * the other cards) and View Profile; never on your own card. Discover adds a recommendation `reason` and a
+ * `menu` (both optional).
  */
 export function StudentSearchCard({ student, headingLevel = 'h3', reason, menu }) {
   const Heading = headingLevel;
   const name = getFullName(student);
   const path = searchResultPath('students', student);
   const campusLine = [student.branch?.shortName, student.semester?.label].filter(Boolean).join(' • ');
+  const viewerId = useAuthStore((state) => state.user?.id);
+  const canFollow = !student.isYou && student.id !== viewerId;
+
+  useEffect(() => {
+    if (canFollow) useFollowStore.getState().ensureStatuses([student.id]);
+  }, [canFollow, student.id]);
 
   return (
     <article className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="student" data-student-id={student.id}>
@@ -44,8 +55,13 @@ export function StudentSearchCard({ student, headingLevel = 'h3', reason, menu }
 
       {reason && <div className="mt-3">{reason}</div>}
 
-      <div className="mt-auto pt-4">
-        <Button as={Link} to={path} variant="outline" size="sm" fullWidth aria-label={`View ${name}'s profile`}>
+      <div className="mt-auto flex gap-2 pt-4">
+        {canFollow && (
+          <div className="min-w-0 flex-1">
+            <FollowButton userId={student.id} name={name} size="sm" fullWidth />
+          </div>
+        )}
+        <Button as={Link} to={path} variant="outline" size="sm" className="min-w-0 flex-1" aria-label={`View ${name}'s profile`}>
           View Profile
         </Button>
       </div>

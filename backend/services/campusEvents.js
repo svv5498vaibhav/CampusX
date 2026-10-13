@@ -32,6 +32,10 @@ export const CAMPUS_EVENTS = Object.freeze({
   AUTH_PASSWORD_CHANGED: 'auth:password-changed',
   // A student deleted their account ({ userId }): every live connection of theirs is closed.
   AUTH_ACCOUNT_DELETED: 'auth:account-deleted',
+  // Follows ({ followerId, followingId }), sent only when the relationship really changed. A block that ends
+  // follows sends STUDENT_UNFOLLOWED for each follow it removed.
+  STUDENT_FOLLOWED: 'student:followed',
+  STUDENT_UNFOLLOWED: 'student:unfollowed',
   PROJECT_CREATED: 'project:created',
   PROJECT_UPDATED: 'project:updated',
   PROJECT_DELETED: 'project:deleted',
