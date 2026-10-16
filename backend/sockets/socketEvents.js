@@ -26,6 +26,10 @@ export const SOCKET_EVENTS = Object.freeze({
   CONVERSATION_READ: 'conversation:read',
   // { unreadCount } conversations with unread messages, after a new message or a read
   MESSAGE_UNREAD_COUNT: 'message:unread-count',
+  // Elite rank tokens: { seq, at } to every signed-in connection when the Gold/Silver/Bronze holders changed.
+  // Public and id-free: it only says "reload the holders" (GET /rankings/elite). The students whose rank
+  // changed also get a notification.
+  ELITE_RANKS_UPDATED: 'elite:updated',
   // Admin control center, delivered only to the staff room (moderators and admins). Ids, types and levels
   // only: never a reporter, a content owner or an anonymous author.
   // { reportId, targetType, targetId, reason, priority, at }

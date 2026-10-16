@@ -16,7 +16,8 @@ export const DEFAULT_THEME_ID = 'campus-green';
 
 export const PROFILE_THEME_STYLES = {
   'campus-green': {
-    cover: 'bg-primary text-primary-fg',
+    // glass-cover: the Aurora Glass gradient when that app theme is on (a no-op in Campus themes).
+    cover: 'glass-cover bg-primary text-primary-fg',
     pattern: { backgroundImage: 'radial-gradient(color-mix(in srgb, currentColor 22%, transparent) 1.5px, transparent 1.5px)', backgroundSize: '20px 20px' },
     ring: 'bg-primary',
     accent: 'text-primary',

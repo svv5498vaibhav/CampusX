@@ -75,7 +75,7 @@ export function OpportunityFilters({ filters, onChange, options }) {
         </label>
       </div>
 
-      <div id={panelId} hidden={!open} className={cn('rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5', !open && 'hidden')}>
+      <div id={panelId} hidden={!open} className={cn('glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5', !open && 'hidden')}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Mode" value={filters.mode} onChange={(event) => onChange({ mode: event.target.value })} options={choices(options?.modes, 'Any mode')} />
           <Select

@@ -72,7 +72,7 @@ function EventsTable({ sinceStart, audited }) {
       <table className="w-full min-w-[34rem] text-left text-sm">
         <caption className="sr-only">Security events by type</caption>
         <thead>
-          <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.14em] text-ax-subtle uppercase">
+          <tr className="border-b border-ax-border admin-label text-ax-subtle">
             <th scope="col" className="px-4 py-2 font-semibold sm:px-5">Event</th>
             <th scope="col" className="px-3 py-2 text-right font-semibold">Seen</th>
             <th scope="col" className="px-3 py-2 text-right font-semibold">Recorded</th>
@@ -123,7 +123,7 @@ export default function AdminSecurity() {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        eyebrow="Security // Status"
+        eyebrow="Security · Status"
         title="Security status"
         description="How CampusX is protected right now, as the API reports it about itself. A snapshot, not live monitoring: press Refresh to ask again."
         actions={

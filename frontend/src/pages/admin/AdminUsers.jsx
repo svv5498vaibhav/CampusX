@@ -40,7 +40,7 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader eyebrow="Campus management // Students" title="Student management" description="Find any account by name, email, college or branch, review its record, and change its status. Every change is audited." />
+      <AdminPageHeader eyebrow="Campus management · Students" title="Student management" description="Find any account by name, email, college or branch, review its record, and change its status. Every change is audited." />
       <AdminPanel label="Accounts" bodyClassName="space-y-4">
         <AdminTabs label="Account status" tabs={tabs} value={filters.status} onChange={(status) => set({ status })} />
         <FilterBar>

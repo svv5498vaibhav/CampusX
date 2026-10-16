@@ -18,20 +18,21 @@ export function AdminStatCard({ icon: Icon, title, value, trend, detail, to, ton
       <Component
         {...(to && { to })}
         className={cn(
-          'admin-panel group relative flex h-full flex-col gap-3 overflow-hidden p-4 transition-[border-color,box-shadow] duration-200',
-          to && 'hover:border-ax-violet/60 hover:admin-glow focus-visible:border-ax-violet',
+          'admin-panel group relative flex h-full flex-col gap-3 overflow-hidden p-4 transition-[transform,border-color,box-shadow] duration-200 ease-campus',
+          // Only cards that open a page lift on hover, so the motion never suggests a link that isn't there.
+          to && 'hover:-translate-y-0.5 hover:border-ax-border-strong hover:shadow-[var(--ag-shadow-lift)] focus-visible:border-ax-violet motion-reduce:hover:translate-y-0',
         )}
       >
-        <span aria-hidden="true" className={cn('pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-2xl', tone === 'danger' ? 'bg-ax-danger/10' : tone === 'warning' ? 'bg-ax-warning/10' : 'bg-ax-violet/12')} />
+        <span aria-hidden="true" className={cn('pointer-events-none absolute -top-12 -right-12 size-28 rounded-full blur-2xl', tone === 'danger' ? 'bg-ax-danger/10' : tone === 'warning' ? 'bg-ax-warning/10' : 'bg-ax-violet/10')} />
         <div className="flex items-center justify-between gap-2">
-          <p className="font-mono text-[10.5px] font-semibold tracking-[0.16em] text-ax-muted uppercase">{title}</p>
+          <p className="admin-label text-ax-muted">{title}</p>
           {Icon && (
-            <span className={cn('grid size-8 place-items-center rounded-lg border', tone === 'danger' ? 'border-ax-danger/40 text-ax-danger' : tone === 'warning' ? 'border-ax-warning/40 text-ax-warning' : 'border-ax-border-strong text-ax-neon')}>
+            <span className={cn('grid size-8 place-items-center rounded-lg border bg-ax-bg-2', tone === 'danger' ? 'border-ax-danger/40 text-ax-danger' : tone === 'warning' ? 'border-ax-warning/40 text-ax-warning' : 'border-ax-border text-ax-neon')}>
               <Icon className="size-4" aria-hidden="true" />
             </span>
           )}
         </div>
-        <p className="font-display text-3xl font-bold tracking-tight text-ax-text">{Number(value ?? 0).toLocaleString()}</p>
+        <p className="font-display text-3xl font-bold tracking-tight text-ax-text tabular-nums">{Number(value ?? 0).toLocaleString()}</p>
         <div className="mt-auto min-h-5 text-xs text-ax-muted">
           {trend ? (
             <p className="flex flex-wrap items-center gap-x-1.5">

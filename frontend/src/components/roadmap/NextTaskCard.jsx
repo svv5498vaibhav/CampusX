@@ -28,7 +28,7 @@ export function NextTaskCard({ next, pending, onOpen, onSetStatus }) {
       initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: reduceMotion ? 0 : 0.2 }}
-      className="relative overflow-hidden rounded-3xl border border-line bg-surface p-5 shadow-soft"
+      className="relative overflow-hidden glass-card rounded-3xl border border-line bg-surface p-5 shadow-soft"
       data-next-milestone={next.id}
     >
       <div className="absolute inset-y-0 left-0 w-1.5 bg-primary" aria-hidden="true" />

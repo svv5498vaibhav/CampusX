@@ -55,6 +55,13 @@ export const CAMPUS_EVENTS = Object.freeze({
   GAMIFICATION_POINTS_EARNED: 'gamification:points-earned',
   // A student reached a better ranking milestone than ever before ({ userId, scope, tier, rank, scopeName }).
   GAMIFICATION_RANK_MILESTONE: 'gamification:rank-milestone',
+  // Some points or a student's ranking eligibility changed ({}), so the top of a leaderboard may have moved.
+  // services/eliteRankService.js takes a new ranking snapshot shortly after.
+  GAMIFICATION_RANKINGS_CHANGED: 'gamification:rankings-changed',
+  // An elite rank token changed hands, after the snapshot and its history were saved. One event per student
+  // whose elite rank changed: { userId, scope, seq, tier, previousTier } (tier/previousTier: 'gold' | 'silver'
+  // | 'bronze' | null). `seq` is the snapshot's number, so a repeated event never notifies twice.
+  ELITE_RANK_CHANGED: 'gamification:elite-rank-changed',
   // Semester Roadmap: a milestone or the career goal changed ({ userId, semesters: the semesters affected }).
   ROADMAP_PROGRESS_CHANGED: 'roadmap:progress-changed',
   COMMUNITY_CREATED: 'community:created',

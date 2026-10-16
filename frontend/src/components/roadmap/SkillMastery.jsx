@@ -15,7 +15,7 @@ export function SkillMastery({ skills }) {
   const ordered = [...skills].sort((a, b) => b.completed / b.total - a.completed / a.total);
   const visible = showAll ? ordered : ordered.slice(0, SHOWN);
   return (
-    <section aria-labelledby="roadmap-skills-heading" className="rounded-3xl border border-line bg-surface p-5 shadow-soft">
+    <section aria-labelledby="roadmap-skills-heading" className="glass-card rounded-3xl border border-line bg-surface p-5 shadow-soft">
       <h2 id="roadmap-skills-heading" className="flex items-center gap-2 font-display text-lg font-bold text-ink">
         <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-primary-soft-fg">
           <Sparkles className="size-4" aria-hidden="true" />

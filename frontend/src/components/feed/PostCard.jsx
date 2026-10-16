@@ -2,6 +2,9 @@ import { useId, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bookmark, Flag, Heart, Link2, MessageCircle, Pencil, Share2, ShieldX, Trash2, UsersRound } from 'lucide-react';
 import { Link } from 'react-router';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { Avatar, Badge, Button, Modal } from '@/components/ui';
 import { CommentSection } from '@/components/feed/CommentSection';
 import { PostComposer } from '@/components/feed/PostComposer';
@@ -137,18 +140,21 @@ export function PostCard({ post, defaultShowComments = false, onDeleted, heading
       ];
 
   return (
-    <article aria-labelledby={titleId} className="rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-post-id={post.id}>
+    <article aria-labelledby={titleId} className="glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-post-id={post.id}>
       <header className="flex items-start gap-3">
         <Link to={profilePath(author.id)} className="shrink-0 rounded-2xl" tabIndex={-1} aria-hidden="true">
-          <Avatar src={author.avatarUrl} name={name} size="md" />
+          <EliteProfileFrame eliteRank={author.eliteRank} size="md">
+            <Avatar src={author.avatarUrl} name={name} size="md" />
+          </EliteProfileFrame>
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <Heading id={titleId} className="text-[15px] leading-tight font-bold text-ink">
               <Link to={profilePath(author.id)} className="hover:underline">
-                {name}
+                <EliteRankName eliteRank={author.eliteRank}>{name}</EliteRankName>
               </Link>
             </Heading>
+            <RankTokenBadge eliteRank={author.eliteRank} variant="icon" />
             {!FORMAT_TYPES.includes(post.type) && (
               <Badge variant={typeStyle.badge} icon={typeStyle.icon} className="px-2 py-0.5 text-[11px]">
                 {typeLabel(options, post.type)}

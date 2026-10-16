@@ -15,7 +15,7 @@ export const NOTIFICATION_CATEGORIES = Object.freeze([
   { id: 'achievements', label: 'Achievement reviews', description: 'When CampusX verifies or declines your proof' },
   { id: 'communities', label: 'Communities', description: 'New members, announcements and role changes in your communities' },
   { id: 'opportunities', label: 'Opportunities', description: 'Updates and deadlines for opportunities you saved or track' },
-  { id: 'rankings', label: 'Rankings and badges', description: 'Badges, level-ups and ranking milestones' },
+  { id: 'rankings', label: 'Rankings and badges', description: 'Badges, level-ups, ranking milestones and elite rank tokens' },
   { id: 'system', label: 'CampusX updates', description: 'Important account and safety messages', locked: true },
 ]);
 export const NOTIFICATION_CATEGORY_IDS = Object.freeze(NOTIFICATION_CATEGORIES.map((category) => category.id));
@@ -54,6 +54,9 @@ export const NOTIFICATION_TYPES = Object.freeze({
   BADGE_EARNED: { category: 'rankings', title: 'New badge unlocked', policy: 'once' },
   LEVEL_UP: { category: 'rankings', title: 'Level up!', policy: 'once' },
   RANK_CHANGED: { category: 'rankings', title: 'Ranking update', policy: 'once' },
+  // Gaining, losing or changing a Gold/Silver/Bronze token. Once per ranking snapshot (the dedupe key holds
+  // its number), so processing a snapshot again never notifies twice.
+  ELITE_RANK_CHANGED: { category: 'rankings', title: 'Elite rank update', policy: 'once' },
   SYSTEM_NOTIFICATION: { category: 'system', title: 'CampusX', policy: 'once' },
   // Trust & Safety (always delivered: they're about the student's own account). No scores, rules or
   // reporter identities are ever included.
@@ -68,10 +71,10 @@ export const NOTIFICATION_TYPE_IDS = Object.freeze(Object.keys(NOTIFICATION_TYPE
 
 /**
  * What a notification points at. The frontend picks the page for each (constants/notifications.js);
- * badge, level, ranking, profile and safety (the community guidelines) have no id to check. `student` is
+ * badge, level, ranking, hall-of-fame, profile and safety (the community guidelines) have no id to check. `student` is
  * another student's public profile (e.g. a new follower).
  */
-export const NOTIFICATION_ENTITY_TYPES = Object.freeze(['post', 'project', 'achievement', 'community', 'opportunity', 'anonymous-post', 'badge', 'level', 'ranking', 'profile', 'safety', 'student']);
+export const NOTIFICATION_ENTITY_TYPES = Object.freeze(['post', 'project', 'achievement', 'community', 'opportunity', 'anonymous-post', 'badge', 'level', 'ranking', 'hall-of-fame', 'profile', 'safety', 'student']);
 
 /** Opportunity fields whose change is worth telling the students who track it. */
 export const OPPORTUNITY_UPDATE_FIELDS = Object.freeze({

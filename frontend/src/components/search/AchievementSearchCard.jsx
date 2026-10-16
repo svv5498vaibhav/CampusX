@@ -21,7 +21,7 @@ export function AchievementSearchCard({ achievement, headingLevel = 'h3', reason
   const owner = achievement.owner;
 
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="achievement" data-achievement-id={achievement.id}>
+    <article className="flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="achievement" data-achievement-id={achievement.id}>
       <div className="flex items-start gap-3">
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent-fg" aria-hidden="true">
           <Icon className="size-5" />

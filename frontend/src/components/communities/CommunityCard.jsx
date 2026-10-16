@@ -23,7 +23,7 @@ export function CommunityCard({ community, reason, headingLevel = 'h3', preview 
     <motion.article
       whileHover={preview ? undefined : { y: -2 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft"
+      className="flex h-full flex-col overflow-hidden glass-card rounded-3xl border border-line bg-surface shadow-soft"
       data-community-id={community.id}
     >
       <div className={cn('relative h-16 shrink-0 bg-linear-to-br', style.cover)}>

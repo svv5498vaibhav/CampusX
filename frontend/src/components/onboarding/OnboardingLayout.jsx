@@ -31,7 +31,7 @@ export function OnboardingLayout({ progress, footer, children }) {
       </main>
 
       {footer && (
-        <footer className="pb-safe sticky bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur-md">
+        <footer className="pb-safe sticky bottom-0 z-20 border-t border-line bg-overlay/95 backdrop-blur-md">
           <div className="gutter-x mx-auto flex w-full max-w-3xl items-center justify-between gap-3 py-3">{footer}</div>
         </footer>
       )}

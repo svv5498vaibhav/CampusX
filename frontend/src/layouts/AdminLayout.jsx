@@ -7,12 +7,14 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminError, AdminLoading } from '@/components/admin/AdminUi';
 import { useSystemStatusPolling } from '@/components/admin/SystemStatus';
 import { useAdminSocket } from '@/hooks/useAdminSocket';
+import { useAdminThemeScope } from '@/hooks/useThemeSync';
 import { useAdminStore } from '@/store/adminStore';
 import { useAuthStore } from '@/store/authStore';
 
 /**
- * Shell for /admin: the cyber control-center look (dark purple, set on <html> only while it is open, so
- * the student app keeps its own theme), the session's permissions, live alerts and system status.
+ * Shell for /admin: the Aurora Glass control-center look (the admin's own light/dark choice, applied to
+ * <html> only while it is open, so the student app keeps its own theme), the session's permissions, live
+ * alerts and system status.
  * Laptop/desktop: permanent sidebar · tablet: icon rail that expands into a drawer · phone: drawer.
  */
 export function AdminLayout() {
@@ -24,17 +26,7 @@ export function AdminLayout() {
   const setDrawerOpen = useAdminStore((state) => state.setDrawerOpen);
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.add('admin-theme');
-    const meta = document.querySelector('meta[name="theme-color"]');
-    const previousColor = meta?.getAttribute('content');
-    meta?.setAttribute('content', '#08060f');
-    return () => {
-      root.classList.remove('admin-theme');
-      if (meta && previousColor) meta.setAttribute('content', previousColor);
-    };
-  }, []);
+  useAdminThemeScope();
 
   // A different account (or a fresh sign-in) loads its own permissions.
   useEffect(() => {
@@ -55,7 +47,7 @@ export function AdminLayout() {
   useSystemStatusPolling();
 
   return (
-    <div className="admin-grid min-h-dvh bg-ax-bg text-ax-text">
+    <div className="admin-grid min-h-dvh text-ax-text">
       <a href="#admin-main" className="sr-only z-50 rounded-lg bg-ax-card px-4 py-2 font-semibold text-ax-text focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
         Skip to content
       </a>
@@ -70,9 +62,9 @@ export function AdminLayout() {
       <AnimatePresence>
         {drawerOpen && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin navigation">
-            <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawerOpen(false)} />
+            <motion.div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawerOpen(false)} />
             <motion.div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] shadow-2xl" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 32, stiffness: 320 }}>
-              <AdminSidebar variant="full" onNavigate={() => setDrawerOpen(false)} />
+              <AdminSidebar variant="full" floating onNavigate={() => setDrawerOpen(false)} />
               <button type="button" onClick={() => setDrawerOpen(false)} className="absolute top-5 right-3 grid size-8 place-items-center rounded-lg border border-ax-border bg-ax-bg-2 text-ax-muted hover:text-ax-text" aria-label="Close navigation">
                 <X className="size-4" aria-hidden="true" />
               </button>

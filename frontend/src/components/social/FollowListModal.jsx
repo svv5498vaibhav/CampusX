@@ -2,6 +2,9 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, UserRoundSearch, UsersRound } from 'lucide-react';
 import { Link } from 'react-router';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { Avatar, Badge, Button, EmptyState, ErrorState, Input, Modal } from '@/components/ui';
 import { profilePath, ROUTES } from '@/constants/routes';
 import { followApi } from '@/services/socialApi';
@@ -46,12 +49,17 @@ function StudentRow({ student, index, onNavigate }) {
       data-student-id={student.id}
     >
       <Link to={path} onClick={onNavigate} tabIndex={-1} aria-hidden="true" className="shrink-0 rounded-full">
-        <Avatar src={student.avatarUrl} name={name} size="md" shape="circle" />
+        <EliteProfileFrame eliteRank={student.eliteRank} size="md" shape="circle">
+          <Avatar src={student.avatarUrl} name={name} size="md" shape="circle" />
+        </EliteProfileFrame>
       </Link>
       <div className="min-w-0 flex-1">
-        <Link to={path} onClick={onNavigate} className="block truncate text-sm font-semibold text-ink hover:underline">
-          {name}
-        </Link>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Link to={path} onClick={onNavigate} className="truncate text-sm font-semibold text-ink hover:underline">
+            <EliteRankName eliteRank={student.eliteRank}>{name}</EliteRankName>
+          </Link>
+          <RankTokenBadge eliteRank={student.eliteRank} variant="icon" />
+        </div>
         {campus && <p className="truncate text-xs text-ink-muted" title={student.college?.name}>{campus}</p>}
       </div>
       {student.isYou ? <Badge variant="primary">You</Badge> : <FollowButton userId={student.id} name={name} size="sm" />}

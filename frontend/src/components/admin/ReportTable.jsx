@@ -44,7 +44,7 @@ export function ReportTable({ reports, onAction, busyId }) {
       <div className="relative hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[960px] text-left text-sm">
           <thead>
-            <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">
+            <tr className="admin-label border-b border-ax-border text-ax-subtle">
               <th scope="col" className="py-2.5 pr-3 font-semibold">Report</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">Target</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">Reason</th>

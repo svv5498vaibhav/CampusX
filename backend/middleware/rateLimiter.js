@@ -4,6 +4,7 @@ import { ADMIN_RATE_LIMITS } from '../config/adminConfig.js';
 import { ANONYMOUS_RATE_LIMITS } from '../data/anonymousOptions.js';
 import { HARD_LIMITS } from '../config/moderationLimits.js';
 import { RECOMMENDATION_RATE_LIMITS } from '../config/recommendationConfig.js';
+import { RESUME_RATE_LIMITS } from '../data/resumeOptions.js';
 import { ROADMAP_RATE_LIMITS } from '../data/roadmapOptions.js';
 import { AUTH_RATE_LIMITS } from '../config/securityConfig.js';
 import { SEARCH_RATE_LIMITS } from '../data/searchOptions.js';
@@ -257,3 +258,16 @@ export const roadmapUpdateRateLimiter = createRateLimiter({
   keyGenerator: perStudent,
   message: ROADMAP_RATE_LIMITS.updates.message,
 });
+
+/** Resume Builder, per student on the shared store: writes (autosave included), checks, and AI suggestions. */
+const resumeLimiter = (kind, name) =>
+  createRateLimiter({
+    name,
+    windowMs: RESUME_RATE_LIMITS[kind].windowMinutes * MINUTE,
+    limit: RESUME_RATE_LIMITS[kind].max,
+    keyGenerator: perStudent,
+    message: RESUME_RATE_LIMITS[kind].message,
+  });
+export const resumeWriteRateLimiter = resumeLimiter('writes', 'resume-writes');
+export const resumeAnalyzeRateLimiter = resumeLimiter('analyze', 'resume-checks');
+export const resumeAiRateLimiter = resumeLimiter('ai', 'resume-ai');

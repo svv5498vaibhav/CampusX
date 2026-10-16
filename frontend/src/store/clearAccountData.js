@@ -3,6 +3,7 @@ import { useAchievementStore } from './achievementStore';
 import { useAdminStore } from './adminStore';
 import { useAnonymousStore } from './anonymousStore';
 import { useCommunityStore } from './communityStore';
+import { useEliteStore } from './eliteStore';
 import { useFeedStore } from './feedStore';
 import { useFollowStore } from './followStore';
 import { useGamificationStore } from './gamificationStore';
@@ -15,6 +16,7 @@ import { useProjectStore } from './projectStore';
 import { useRankingStore } from './rankingStore';
 import { useRecommendationStore } from './recommendationStore';
 import { useReportStore } from './reportStore';
+import { useResumeStore } from './resumeStore';
 import { useRoadmapStore } from './roadmapStore';
 import { useSearchStore } from './searchStore';
 
@@ -23,6 +25,7 @@ const STORES_WITH_RESET = [
   useAdminStore,
   useAnonymousStore,
   useCommunityStore,
+  useEliteStore,
   useFeedStore,
   useFollowStore,
   useGamificationStore,
@@ -33,6 +36,7 @@ const STORES_WITH_RESET = [
   useProfileStore,
   useProjectStore,
   useRankingStore,
+  useResumeStore,
   useRoadmapStore,
 ];
 // These clear themselves when the viewer changes; "nobody" clears them.

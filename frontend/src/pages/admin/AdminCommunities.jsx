@@ -107,7 +107,7 @@ export default function AdminCommunities() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader eyebrow="Campus management // Communities" title="Community management" description="Official and student-created communities. Suspending hides a community from search and from students who aren’t members." />
+      <AdminPageHeader eyebrow="Campus management · Communities" title="Community management" description="Official and student-created communities. Suspending hides a community from search and from students who aren’t members." />
       <AdminPanel label="Communities" bodyClassName="space-y-4">
         <AdminTabs label="Standing" tabs={moderationTabs} value={filters.moderation} onChange={(moderation) => set({ moderation })} />
         <FilterBar>
@@ -126,7 +126,7 @@ export default function AdminCommunities() {
                 <div className="relative hidden overflow-x-auto lg:block">
                   <table className="w-full min-w-[1000px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">
+                      <tr className="border-b border-ax-border admin-label text-ax-subtle">
                         <th scope="col" className="py-2.5 pr-3 font-semibold">Community</th>
                         <th scope="col" className="py-2.5 pr-3 font-semibold">Scope</th>
                         <th scope="col" className="py-2.5 pr-3 font-semibold">Owner</th>

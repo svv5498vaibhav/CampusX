@@ -138,7 +138,7 @@ export function AchievementForm({ achievement = null, onSaved, onCancel }) {
         <p className="mt-2 text-xs text-ink-subtle">{options.visibility.find((option) => option.id === values.visibility)?.description}</p>
       </Card>
 
-      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 flex justify-end gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
+      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 flex justify-end gap-3 rounded-2xl border border-line bg-overlay/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
         <Button variant="outline" onClick={onCancel} disabled={saving}>Cancel</Button>
         <Button type="submit" loading={saving}>{achievement ? 'Save changes' : 'Save achievement'}</Button>
       </div>

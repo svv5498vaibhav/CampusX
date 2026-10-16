@@ -344,7 +344,7 @@ export default function OpportunityDetails() {
         </div>
       </article>
 
-      <div role="group" aria-label="Apply and save" className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mt-6 rounded-2xl border border-line bg-surface/95 p-3 shadow-lift backdrop-blur-md md:hidden">
+      <div role="group" aria-label="Apply and save" className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mt-6 rounded-2xl border border-line bg-overlay/95 p-3 shadow-lift backdrop-blur-md md:hidden">
         {askApplied && open ? (
           <div role="status" className="flex flex-col gap-2">
             <p className="text-sm font-semibold text-ink">Did you {link?.verb ?? 'apply'}? <span className="font-normal text-ink-muted">{applyHint}</span></p>

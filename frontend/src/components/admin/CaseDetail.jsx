@@ -13,14 +13,14 @@ function ScoreBar({ score }) {
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Automated risk score</span>
+        <span className="admin-label text-ax-subtle">Automated risk score</span>
         <span className="font-display text-xl font-bold text-ax-text tabular-nums">
           {score}
           <span className="text-xs font-normal text-ax-subtle">/100</span>
         </span>
       </div>
       <div className="relative mt-2 h-2 rounded-full bg-[var(--ax-chart-grid)]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score} aria-label="Automated risk score">
-        <div className="h-full rounded-full" style={{ width: `${Math.max(2, score)}%`, backgroundColor: color }} />
+        <div className="h-full rounded-full transition-[width,background-color] duration-500 ease-campus" style={{ width: `${Math.max(2, score)}%`, backgroundColor: color }} />
         {[30, 60, 85].map((mark) => (
           <span key={mark} aria-hidden="true" className="absolute top-[-3px] h-3.5 w-px bg-ax-subtle/60" style={{ left: `${mark}%` }} />
         ))}
@@ -173,7 +173,7 @@ export function AuditTimeline({ entries, emptyText = 'Nothing recorded yet.' }) 
 function RevealedAuthor({ author, onHide }) {
   return (
     <div className="rounded-xl border border-ax-warning/40 bg-ax-warning/5 p-3">
-      <p className="flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[0.16em] text-ax-warning uppercase">
+      <p className="flex items-center gap-1.5 admin-label text-ax-warning">
         <Fingerprint className="size-3.5" aria-hidden="true" /> Revealed for this investigation
       </p>
       {author.deleted ? (
@@ -265,7 +265,7 @@ function OwnerPanel({ owner, canReveal, onReveal }) {
           { label: 'Account', value: <StatusPill kind="account" value={person?.status} /> },
         ]}
       />
-      <p className="mt-4 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Previous violations</p>
+      <p className="mt-4 admin-label text-ax-subtle">Previous violations</p>
       {previousViolations.length === 0 ? (
         <p className="mt-1 text-sm text-ax-subtle">None on record.</p>
       ) : (
@@ -347,7 +347,7 @@ export function CaseDetail({ data, onDecide, onReveal }) {
     <div className="space-y-5">
       <AdminPanel bodyClassName="flex flex-wrap items-center gap-x-6 gap-y-3">
         <div>
-          <p className="font-mono text-[10px] tracking-[0.18em] text-ax-subtle uppercase">Case ID</p>
+          <p className="admin-label text-ax-subtle">Case ID</p>
           <p className="font-mono text-lg font-bold text-ax-neon" title={moderationCase.id}>
             {shortId(moderationCase.id)}
           </p>
@@ -388,7 +388,7 @@ export function CaseDetail({ data, onDecide, onReveal }) {
           <DecisionPanel data={data} onDecide={onDecide} />
           <AdminPanel label="Risk analysis">
             <ScoreBar score={moderationCase.automatedScore} />
-            <p className="mt-4 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Signals</p>
+            <p className="mt-4 admin-label text-ax-subtle">Signals</p>
             {moderationCase.flags.length ? (
               <ul className="mt-1.5 flex flex-wrap gap-1.5">
                 {moderationCase.flags.map((flag) => (

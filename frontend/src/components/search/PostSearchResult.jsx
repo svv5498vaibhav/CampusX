@@ -20,7 +20,7 @@ function AnonymousSearchCard({ post, headingLevel }) {
   const path = searchResultPath('posts', post);
 
   return (
-    <article className="rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-search-result="anonymous-post" data-anonymous-post-id={post.id}>
+    <article className="glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-search-result="anonymous-post" data-anonymous-post-id={post.id}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <AnonymousByline createdAt={post.createdAt} edited={post.edited} />
         <Badge variant="primary" icon={CategoryIcon} className="px-2 py-0.5 text-[11px]">

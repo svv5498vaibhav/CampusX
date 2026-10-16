@@ -125,7 +125,7 @@ export function SearchFilters({ type, filters, sort, onChange, onSortChange, onC
         </label>
       </div>
 
-      <div className="hidden rounded-3xl border border-line bg-surface p-4 shadow-soft md:block" role="group" aria-label="Filters">
+      <div className="hidden glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft md:block" role="group" aria-label="Filters">
         {grid}
       </div>
 

@@ -119,7 +119,7 @@ const anyOf = (path, values) => ({ [path]: { $in: values.map(exactPattern) } });
 
 // ----------------------------------------------------------------------------- safe result shapes
 
-const STUDENT_SUMMARY = ['id', 'firstName', 'lastName', 'avatarUrl', 'college', 'branch', 'semester'];
+const STUDENT_SUMMARY = ['id', 'firstName', 'lastName', 'avatarUrl', 'college', 'branch', 'semester', 'eliteRank'];
 const RESULT_FIELDS = Object.freeze({
   students: [...STUDENT_SUMMARY, 'skills', 'interests', 'isYou'],
   posts: ['id', 'type', 'content', 'media', 'visibility', 'community', 'author', 'likeCount', 'commentCount', 'likedByCurrentUser', 'savedByCurrentUser', 'isOwner', 'canModerate', 'editedAt', 'createdAt', 'updatedAt'],

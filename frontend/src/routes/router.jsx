@@ -24,6 +24,8 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
 const EditProfilePage = lazy(() => import('@/pages/EditProfilePage'));
 const PublicProfilePage = lazy(() => import('@/pages/PublicProfilePage'));
 const SemesterRoadmapPage = lazy(() => import('@/pages/roadmap/SemesterRoadmapPage'));
+const ResumeBuilderPage = lazy(() => import('@/pages/resume/ResumeBuilderPage'));
+const ResumeEditorPage = lazy(() => import('@/pages/resume/ResumeEditorPage'));
 const CommunitiesPage = lazy(() => import('@/pages/CommunitiesPage'));
 const CommunityDetailsPage = lazy(() => import('@/pages/CommunityDetailsPage'));
 const ProjectsPage = lazy(() => import('@/pages/projects/ProjectsPage'));
@@ -40,6 +42,7 @@ const MyOpportunities = lazy(() => import('@/pages/opportunities/MyOpportunities
 const SavedOpportunities = lazy(() => import('@/pages/opportunities/SavedOpportunities'));
 const OpportunityEditor = lazy(() => import('@/pages/admin/opportunities/OpportunityEditor'));
 const RankingPage = lazy(() => import('@/pages/rankings/RankingPage'));
+const HallOfFamePage = lazy(() => import('@/pages/rankings/HallOfFamePage'));
 const BadgesPage = lazy(() => import('@/pages/gamification/BadgesPage'));
 const PointActivityPage = lazy(() => import('@/pages/gamification/PointActivityPage'));
 const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage'));
@@ -47,6 +50,7 @@ const MessagesPage = lazy(() => import('@/pages/messages/MessagesPage'));
 const SearchPage = lazy(() => import('@/pages/search/SearchPage'));
 const DiscoverPage = lazy(() => import('@/pages/DiscoverPage'));
 const SafetyPage = lazy(() => import('@/pages/SafetyPage'));
+const ThemeStudioPage = lazy(() => import('@/pages/ThemeStudioPage'));
 const AnonymousZone = lazy(() => import('@/pages/anonymous/AnonymousZone'));
 const AnonymousPostDetails = lazy(() => import('@/pages/anonymous/AnonymousPostDetails'));
 const CreateAnonymousPost = lazy(() => import('@/pages/anonymous/CreateAnonymousPost'));
@@ -161,6 +165,8 @@ export const router = createBrowserRouter([
               { path: ROUTES.PROFILE, element: <ProfilePage /> },
               { path: ROUTES.PROFILE_EDIT, element: <EditProfilePage /> },
               { path: ROUTES.ROADMAP, element: <SemesterRoadmapPage /> },
+              { path: ROUTES.RESUME_BUILDER, element: <ResumeBuilderPage /> },
+              { path: ROUTES.RESUME_EDITOR, element: <ResumeEditorPage /> },
               { path: `${ROUTES.PROFILE}/:userId`, element: <PublicProfilePage /> },
               { path: ROUTES.COMMUNITIES, element: <CommunitiesPage /> },
               { path: ROUTES.COMMUNITY, element: <CommunityDetailsPage /> },
@@ -177,6 +183,7 @@ export const router = createBrowserRouter([
               { path: ROUTES.OPPORTUNITIES_MY, element: <MyOpportunities /> },
               { path: ROUTES.OPPORTUNITY, element: <OpportunityDetails /> },
               { path: ROUTES.RANKINGS, element: <RankingPage /> },
+              { path: ROUTES.HALL_OF_FAME, element: <HallOfFamePage /> },
               { path: ROUTES.BADGES, element: <BadgesPage /> },
               { path: ROUTES.POINT_ACTIVITY, element: <PointActivityPage /> },
               { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
@@ -185,6 +192,7 @@ export const router = createBrowserRouter([
               { path: ROUTES.SEARCH, element: <SearchPage /> },
               { path: ROUTES.DISCOVER, element: <DiscoverPage /> },
               { path: ROUTES.SAFETY, element: <SafetyPage /> },
+              { path: ROUTES.THEME_STUDIO, element: <ThemeStudioPage /> },
               { path: ROUTES.COMMUNITY_GUIDELINES, element: <RedirectTo to={ROUTES.SAFETY} fullScreen={false} /> },
               { path: ROUTES.ANONYMOUS, element: <AnonymousZone /> },
               { path: ROUTES.ANONYMOUS_NEW, element: <CreateAnonymousPost /> },

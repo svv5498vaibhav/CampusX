@@ -116,7 +116,7 @@ export function NotificationBell({ variant = 'sidebar' }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.16 }}
-              className="fixed top-4 left-[5.75rem] z-40 w-[min(24rem,calc(100vw-7rem))] overflow-hidden rounded-3xl border border-line bg-surface shadow-lift outline-none lg:left-[16.75rem]"
+              className="fixed top-4 left-[5.75rem] z-40 w-[min(24rem,calc(100vw-7rem))] glass-overlay overflow-hidden rounded-3xl border border-line bg-overlay shadow-lift outline-none lg:left-[16.75rem]"
             >
               <NotificationDropdown labelId={labelId} onClose={() => setOpen(false)} />
             </motion.div>

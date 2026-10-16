@@ -60,7 +60,7 @@ function TrackedRow({ opportunity, onRemove }) {
   const options = useOpportunityStore((state) => state.options);
   const available = opportunity.available !== false;
   return (
-    <li className="flex flex-col gap-3 rounded-3xl border border-line bg-surface p-4 shadow-soft sm:flex-row sm:items-center" data-opportunity-id={opportunity.id}>
+    <li className="flex flex-col gap-3 glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:flex-row sm:items-center" data-opportunity-id={opportunity.id}>
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <OpportunityTypeIcon opportunity={opportunity} />
         <div className="min-w-0">

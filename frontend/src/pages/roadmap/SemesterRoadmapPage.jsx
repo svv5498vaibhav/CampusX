@@ -164,7 +164,7 @@ export default function SemesterRoadmapPage() {
             <aside className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8" aria-label="Roadmap insights">
               {roadmap.skills.length > 0 && <SkillMastery skills={roadmap.skills} />}
               {roadmap.savedElsewhere > 0 && (
-                <p className="flex items-start gap-2 rounded-3xl border border-line bg-surface p-4 text-sm text-ink-muted">
+                <p className="flex items-start gap-2 glass-card rounded-3xl border border-line bg-surface p-4 text-sm text-ink-muted">
                   <Archive className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                   {roadmap.savedElsewhere} completed {roadmap.savedElsewhere === 1 ? 'milestone is' : 'milestones are'} saved from another goal. {roadmap.savedElsewhere === 1 ? 'It counts' : 'They count'} again if you switch back.
                 </p>

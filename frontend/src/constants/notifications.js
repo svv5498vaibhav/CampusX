@@ -4,6 +4,7 @@ import {
   Bell,
   Briefcase,
   CalendarClock,
+  Crown,
   Heart,
   Info,
   Megaphone,
@@ -40,6 +41,8 @@ export const SOCKET_EVENTS = Object.freeze({
   MESSAGE_NEW: 'message:new',
   CONVERSATION_READ: 'conversation:read',
   MESSAGE_UNREAD_COUNT: 'message:unread-count',
+  // Elite rank tokens moved ({ seq, at }, no ids): read the holders again.
+  ELITE_RANKS_UPDATED: 'elite:updated',
   // Admin control center (delivered only to signed-in moderators and admins).
   ADMIN_NEW_REPORT: 'admin:newReport',
   ADMIN_NEW_MODERATION_CASE: 'admin:newModerationCase',
@@ -76,6 +79,8 @@ export const NOTIFICATION_PRESENTATION = {
   BADGE_EARNED: { icon: Trophy, tone: 'accent' },
   LEVEL_UP: { icon: TrendingUp, tone: 'accent' },
   RANK_CHANGED: { icon: TrendingUp, tone: 'accent' },
+  // Shown with the token's own colours (components/notifications/NotificationIcon.jsx).
+  ELITE_RANK_CHANGED: { icon: Crown, tone: 'accent' },
   SYSTEM_NOTIFICATION: { icon: Info, tone: 'neutral' },
   // Trust & Safety: calm, never alarming colours.
   CONTENT_RESTRICTED: { icon: ShieldAlert, tone: 'accent' },
@@ -116,6 +121,8 @@ export function notificationLink(notification) {
     case 'level':
     case 'ranking':
       return ROUTES.RANKINGS;
+    case 'hall-of-fame':
+      return ROUTES.HALL_OF_FAME;
     case 'profile':
       return ROUTES.PROFILE;
     case 'safety':

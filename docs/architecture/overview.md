@@ -614,13 +614,63 @@ Temporary files are removed when the response finishes, whatever happened.
   through `STUDENT_PROFILE_CHANGED`), sorted points ↓, verified achievements ↓, reached-at ↑, user ↑. A
   student's rank is a count of the records ordered before them. Pages are cached under
   `ranking:<version>:...` (Redis or memory) where the version changes on every points change.
-  Inactive accounts found while building a page are marked ineligible. No cron jobs or snapshots yet:
-  the weekly/monthly keys make periods self-resetting, so none are needed at this size.
+  Inactive accounts found while building a page are marked ineligible. Leaderboards themselves need no
+  cron jobs or snapshots: the weekly/monthly keys make periods self-resetting. (Ranking snapshots exist only
+  for the elite rank tokens, below.)
 - **Events out**: `gamification:level-reached`, `gamification:badges-earned`, `gamification:points-earned` and
   `gamification:rank-milestone` (Phase 11 notifications). Ranking milestones (`RANK_MILESTONES`): after a
   student gains points, their all-time rank on CampusX and at their college is checked with the same
   ranking rules; reaching the top 10 / top 3 / #1 (with more ranked students than the milestone and at
-  least 5) is recorded once in `rankMilestones` and announced only when it beats their best.
+  least 5) is recorded once in `rankMilestones` and announced only when it beats their best. CampusX-wide #1
+  and top 3 are still recorded but announced by the elite rank token notification instead (never twice).
+
+## Elite rank tokens and the Hall of Fame
+
+The Gold, Silver and Bronze tokens (Golden Champion, Silver Elite, Bronze Elite) belong to #1, #2 and #3 of
+ONE leaderboard: the CampusX-wide all-time ranking (`ELITE_RANK_RULES.scope/period` in
+`data/gamificationOptions.js`), so scopes are never mixed and at most three students hold a token. Nothing a
+request sends can choose, claim or move a token: the only routes are reads.
+
+- **Snapshots** (`services/eliteRankService.js`): a refresh calculates the top three with the leaderboard's
+  own rules (`rankingService.topOfLeaderboard`: eligible students with points, same order and tie-breakers,
+  inactive accounts leave the rankings on the way). A read that fails or doesn't look like a ranking moves
+  nothing. Refreshes are asked for by `gamification:rankings-changed` (every points or eligibility change,
+  debounced `refreshDelayMs`), by account deletion, and every `refreshEveryMinutes` by
+  `jobs/eliteRankRefresh.js` (also shortly after start-up). One process runs them one at a time.
+- **Ownership** (`EliteRankState`, one document per scope): same holders → only `checkedAt` changes. New
+  holders → ONE compare-and-set on `{ seq, historySeq, checkedAt < computedAt }` moves all three tokens, so a
+  slower, older snapshot or a second instance can never overwrite a newer result. That update is the commit
+  point and saves what the history needs (`pending`).
+- **History** (permanent, kept after a token is lost): `RankingSnapshot` (the top three as ranked, per `seq`),
+  `EliteRankReign` (one uninterrupted holding: gained/lost times, reasons, `enteredTopThree`) and
+  `EliteRankTransfer` (one token changing hands). All are upserts keyed by the snapshot number, so writing a
+  snapshot's history again adds nothing. On a replica set (Atlas) the commit and the history run in one
+  transaction (`utils/transactions.js`); on a standalone server whoever finds `historySeq < seq` finishes
+  the history from `pending` before taking a new snapshot. Reasons: `first-snapshot`, `ranking`,
+  `left-rankings` (account suspended or closed, no points).
+- **After a change**: the holders cache (`services/eliteRankHolders.js`, a few seconds per process) and the
+  leaderboard page cache are dropped, `gamification:elite-rank-changed` is emitted per student whose rank
+  changed (→ `ELITE_RANK_CHANGED` notification, category `rankings`, dedupe key `elite:<scope>:<seq>` with
+  policy `once`, so a repeated snapshot never notifies twice) and `elite:updated` `{ seq, at }` is broadcast
+  to every socket (id-free: "read the holders again"). Then `historySeq` is set.
+- **Identity**: `toStudentSummary` and public profiles carry `eliteRank` (`{ tier, rank, title, token, since }`
+  or null) from the holders cache, so leaderboards, profiles, search, follower lists, recommendations and post
+  authors all show the server's answer. If the state can't be read the last known holders are used (never
+  guessed).
+- **API**: `GET /rankings/elite` (holders, the viewer's own `you`), `GET /rankings/hall-of-fame?page&limit`
+  (holders, previous holders per token, longest Gold reign, most top-three entries, totals, paged transfers),
+  `GET /rankings/elite/students/:userId` (one student's reigns and stats; 404 for inactive accounts).
+  Accounts that are no longer active appear in history as "a former CampusX student" (no id, no name).
+- **Frontend**: `components/elite/` — `EliteRankName` (metal gradient text over a solid AA colour; `shine`
+  only where a student is featured), `EliteProfileFrame` (ring outside the photo, emblem in the corner, same
+  box with or without a token, cross-fades on change), `RankTokenBadge` (full / compact / icon, always with
+  words for screen readers), `RankChangeAnimation` (short celebration or calm notice, `useEliteCelebration`
+  remembers the last tier seen per device) and `EliteRankHistory` (profile section). Store
+  `store/eliteStore.js`; page `/rankings/hall-of-fame`. Colours are `--elite-*` tokens in `styles/index.css`
+  (every text stop ≥ 4.5:1 on Campus and Aurora, light and dark); shine and glow stop for reduced motion.
+- **Tests**: `tests/api/elite-ranks.mjs` (incl. interrupted, repeated, stale, failed and concurrent snapshots
+  through `tests/lib/elite-refresh.mjs`, and the transactional path on a replica set) and
+  `tests/browser/elite-ranks.mjs`.
 
 ## Notifications and real-time (Phase 11)
 
@@ -902,11 +952,12 @@ service.
 - **Caching**: dashboard (30 s), moderation summary (30 s) and analytics per range (120 s) on the existing
   `cacheService` (Redis, memory fallback). Successful admin changes clear them; builds read a fresh summary
   so the numbers on one page agree.
-- **Frontend**: `layouts/AdminLayout.jsx` (lazy-loaded: students never download admin code) puts `admin-theme`
-  on `<html>` while open; `styles/index.css` defines the `--ax-*` palette (black, dark purple, neon violet;
-  chart series validated against the card surface for colour-vision deficiency) and re-points the semantic
-  `--cx-*` tokens under `.admin-theme`, so shared pieces (inputs, modals, toasts, the Phase 8 opportunity form)
-  follow it without changes. `components/admin/*` (sidebar with full / rail / drawer variants, header with live
+- **Frontend**: `layouts/AdminLayout.jsx` (lazy-loaded: students never download admin code) calls
+  `useAdminThemeScope()`, so `<html>` carries `admin-theme` plus the Aurora Glass classes in the admin's own
+  light/dark variant while it is open (see Theming). `styles/index.css` maps the `--ax-*` tokens onto the
+  shared Aurora Glass palette (chart series validated against both glass surfaces for colour-vision
+  deficiency), and the semantic `--cx-*` tokens follow the same palette, so shared pieces (inputs, modals,
+  toasts, the Phase 8 opportunity form) match without changes. `components/admin/*` (sidebar with full / rail / drawer variants, header with live
   alerts and real system status, stat cards, SVG charts with hover/keyboard readouts and data tables, risk
   radar, tables with phone layouts, case detail, confirmation modal), `pages/admin/*`, `routes/AdminRoute.jsx`
   (per-page permission guard, UX only), `store/adminStore.js`, `services/adminApi.js`,
@@ -974,6 +1025,52 @@ A semester-by-semester career path on the student's own profile (`/profile/roadm
   code for now. Moving them to a `RoadmapTemplate` collection needs a new admin-only permission (moderators
   would not get it automatically), an editor with the same link checks on save, audit rows, and a version bump
   that keeps students' stored milestone ids valid.
+
+## Resume Builder
+
+Students build resumes from their CampusX profile (`/resume-builder`, opened from the Resume Builder card on their
+own profile and from the phone account sheet). API details:
+[docs/api/README.md](../api/README.md#resume-builder).
+
+| File | Responsibility |
+| --- | --- |
+| `data/resumeOptions.js` | Templates (id, category `fresher`/`general`, offered accents and fonts, default spacing and page mode, default section order), target roles (suggested template, common skills), sections, accents, limits sized to the request screening, rate limits, AI tasks, and the word lists the importer and checker use (skill groups, known skills for job descriptions, vague phrases, action verbs) |
+| `models/Resume.js` | One document per resume: `owner`, `name` + `nameKey` (unique per owner), `targetRole`, `customRole`, `template`, `isDefault` (unique partial index: one default per owner), `settings`, `sections` (`order`, `hidden`, `titles`, `customOrder`), `content` (one object, shape enforced by the service), `revision`, `importedAt`, `lastExportedAt`, `exportCount` |
+| `services/resumeContent.js` | The allow-list for every write: field by field, lengths, http(s) links with real hosts, `YYYY`/`YYYY-MM` dates, list limits, item ids; section order completion; settings a template offers |
+| `services/resumeService.js` | Every read and write, always filtered on `owner: req.user._id`; names ("(2)" when taken), the 20-resume limit, default handling, optimistic concurrency on `revision`, duplicate, delete with default promotion, export counting |
+| `services/resumeImportService.js` | "Import My CampusX Profile": a read-only draft from the student's own profile, projects (owned or accepted team place), achievements and completed roadmap learning; removed or rejected items left out |
+| `services/resumeAnalysisService.js` | The resume checker (explained rules, a weighted score, keyword matching for job descriptions); also used by the AI guard rails |
+| `services/aiProvider.js`, `services/resumeAiService.js` | The server-side AI provider abstraction (Google Gemini through `@google/genai`, `models.generateContent` with `responseJsonSchema`; `null` without a key; quota → 429, outages retried once, no provider details passed on) and the resume assistant tasks: prompts with resume facts only (no contact details), JSON-schema answers, size caps, and warnings for numbers or technologies not in the resume |
+| `routes/resumeRoutes.js`, `controllers/resumeController.js`, `validators/resumeValidator.js` | `/api/v1/resumes`: authenticated, the signed-in student only, per-student rate limits on writes, checks and AI |
+
+- **Ownership**: no route takes a user id; every query includes the owner, so another student's resume is a 404
+  and can't be read, changed, copied, exported, checked or deleted. Account deletion removes a student's resumes
+  (`services/accountDeletionService.js`).
+- **Concurrency**: updates name the `revision` they were based on and are applied with a conditional update, so a
+  stale tab gets a 409 instead of overwriting newer work. Default changes and downloads don't bump the revision.
+- **No invented content**: the importer copies only what the student wrote on CampusX and leaves unknown details
+  (phone, links, degree, dates, CGPA) empty; the checker never promises outcomes; AI suggestions are reviewed and
+  edited by the student, with unsupported numbers and technologies flagged.
+- **Frontend**: `pages/resume/ResumeBuilderPage.jsx` (saved resumes: create, edit, download, duplicate, rename,
+  default, delete) and `pages/resume/ResumeEditorPage.jsx` (ten steps in `?step=`, live preview, autosave via
+  `hooks/useResumeEditor.js`, which saves 1.2 s after typing stops, before downloads, checks and leaving, and
+  reports conflicts). Steps live in `components/resume/steps/`; the phone preview is a portal (the routed page
+  sits in a transformed container); `StepNav`'s scrolling list is `relative` so its `sr-only` labels can't widen
+  the page.
+- **Layout and PDF** (`utils/resume/`): `layout.js` is a small layout engine (paragraphs with styled runs, rows
+  with right-aligned dates, bullets, tags, columns, keep-together stacks, flows across A4 frames) that measures
+  text with jsPDF's own font metrics (kerning off, as jsPDF draws it) and produces drawing operations per page.
+  `templates/*.js` are the ten layouts (each genuinely different: centred ruled classic, accent graduate,
+  developer with links header and skills table, tinted section bands with an objective box, compact one-page, CV
+  with a date column, left-aligned classic, colour header band with project cards, side headings, two columns
+  with a tinted sidebar). `document.js` builds the theme from the settings and, for "fit on one page", tightens
+  spacing and type (body text never below 9 pt), keeping extra pages rather than cutting anything.
+  `components/resume/ResumePage.jsx` draws the operations as SVG (each run's `textLength` pinned to the measured
+  width) and `pdf.js` writes the same operations with jsPDF, so the preview and the PDF match. `characters.js`
+  maps text to what the standard PDF fonts can draw (₹ → Rs., ā → a), the same table the backend checker uses.
+  Printing renders the pages into a print-only container (`styles/index.css`, "Resume printing").
+- **Dependencies**: `jspdf` (frontend, loaded only with the resume pages) and `@google/genai` (backend, used
+  only when `GEMINI_API_KEY` is set).
 
 ## Follows, blocks and direct messages
 
@@ -1135,16 +1232,41 @@ Defined in `src/styles/index.css` with Tailwind v4 CSS-first config:
   `primary`, `primary-soft`, `accent-soft`, `danger` and so on. Each is defined once for light and once
   for dark, so components never need `dark:` variants for colour.
 - **Shadows:** `shadow-soft`, `shadow-lift`, `shadow-glow` (green glow, stronger in dark mode).
-- **Type:** Plus Jakarta Sans (body), Bricolage Grotesque (display).
+- **Floating layers:** `bg-overlay` for menus, dialogs, toasts and sticky bars (equal to `surface` in the
+  Campus themes, stronger frosted glass in Aurora Glass).
+- **Type:** Plus Jakarta Sans (body), Bricolage Grotesque (display). Aurora Glass and the admin use Space
+  Grotesk for display and JetBrains Mono for technical details (IDs, times, metrics); body text stays Plus
+  Jakarta Sans. Fonts load from Google Fonts with system fallbacks.
 - **Shape language:** rounded-3xl cards, rounded-xl buttons and inputs, squircle avatars.
 - **Campus motifs:** dotted map texture (`campus-grid`), campus-map landing illustration, gate logo mark.
 
 ### Theming
 
-The theme is `light`, `dark` or `system`, stored in Zustand (persisted to `localStorage` under
-`campusx-theme`). `useThemeSync` toggles the `dark` class on `<html>`. A small inline script in
-`index.html` applies the saved theme before first paint to avoid a flash.
+Four app themes (`constants/appThemes.js`): **Campus Light**, **Campus Dark** (the default green look) and
+**Aurora Glass Light**, **Aurora Glass Dark** (deep navy / pale lavender, violet, electric blue and mint, with
+frosted glass). A theme is a *style* (`campus` · `aurora`) plus a *mode* (`light` · `dark` · `system`). The
+five profile styles (`constants/profileThemes.js`) are separate and sit on top of whichever app theme is on.
 
-The admin control center has its own fixed dark look: `AdminLayout` adds `admin-theme` to `<html>` while it
-is mounted (removed on leaving), which overrides both the light and dark student tokens. The student theme
-setting is untouched.
+- **State:** `store/themeStore.js` (Zustand, persisted to `localStorage` under `campusx-theme` as
+  `{ theme, style, adminMode }`; older `{ theme }` saves still load, unknown values fall back to the
+  defaults). It also holds Theme Studio's unsaved `preview` and the `scope` (`campus` or `admin`), which are
+  not saved. Theme choices are device settings and survive sign-out, as before.
+- **Classes:** `hooks/useThemeSync.js` (a layout effect, so nothing paints in the wrong theme) sets `dark`,
+  `theme-aurora` and `admin-theme` on `<html>` and the `theme-color` meta. A chosen theme crossfades once
+  through the View Transitions API (skipped under reduced motion or where unsupported). The inline script in
+  `index.html` applies the saved student theme before first paint.
+- **Tokens:** `styles/index.css` holds the Aurora palette as `--ag-*` per variant and maps it onto the
+  semantic `--cx-*` and admin `--ax-*` tokens. `[data-theme-preview="<id>"]` declares a theme's tokens on any
+  element, which is how Theme Studio previews render with the real values.
+- **Glass hooks:** `glass-card` (sheen; `glass-reflect` adds a hover reflection), `glass-overlay` (backdrop
+  blur for floating layers), `glass-primary` (gradient primary action), `glass-danger`, `glass-cover`. They
+  only take effect under `theme-aurora`, so the Campus themes are unchanged. Resting cards and admin panels
+  are never blurred (cheap to scroll); only floating layers are. Without `backdrop-filter`, or with
+  `prefers-reduced-transparency`, the glass turns near-opaque. The ambient aurora is one fixed
+  `body::before` layer, drifting slowly only for students on large screens without reduced motion.
+- **Theme Studio** (`/theme-studio`, `pages/ThemeStudioPage.jsx`; linked from the sidebar and the phone
+  account sheet): preview cards for the four themes, "Match my device", live preview across the app,
+  Apply / Cancel / Reset. Leaving without applying restores the saved theme.
+- **Admin control center:** always Aurora Glass, Dark by default. Staff switch its variant from the admin
+  header or in Theme Studio (shown to admins and moderators only); it is saved as `adminMode` and never
+  changes the student theme, and the student theme never reaches the admin.

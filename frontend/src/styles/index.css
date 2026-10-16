@@ -9,6 +9,7 @@
 @theme {
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 
   /* Nature green: the CampusX brand colour. */
   --color-leaf-50: #effbf3;
@@ -36,11 +37,22 @@
 
 /* ------------------------------------------------------------------ */
 /* Semantic tokens: components use these, never raw hex values.        */
+/*                                                                     */
+/* Four app themes share them (see constants/appThemes.js):            */
+/*   Campus Light · Campus Dark   the green CampusX look (default)     */
+/*   Aurora Glass Light · Dark    `theme-aurora` on <html>             */
+/* The admin control center always uses Aurora Glass (its own          */
+/* light/dark choice) and adds `admin-theme`. All classes are set by   */
+/* hooks/useThemeSync.js. `[data-theme-preview]` renders one theme     */
+/* inside any element, so Theme Studio previews use the real tokens.   */
 /* ------------------------------------------------------------------ */
-:root {
+:root,
+[data-theme-preview='campus-light'] {
   --cx-canvas: #f4f7f4;
   --cx-surface: #ffffff;
   --cx-surface-muted: #edf2ee;
+  /* Floating layers (menus, dialogs, toasts). Solid in Campus themes, frosted in Aurora Glass. */
+  --cx-overlay: var(--cx-surface);
   --cx-ink: #15201a;
   --cx-ink-muted: #526258;
   --cx-ink-subtle: #7f8e85;
@@ -70,10 +82,12 @@
   color-scheme: light;
 }
 
-.dark {
+.dark,
+[data-theme-preview='campus-dark'] {
   --cx-canvas: #0b0e0c;
   --cx-surface: #131815;
   --cx-surface-muted: #1b221e;
+  --cx-overlay: var(--cx-surface);
   --cx-ink: #e6eee8;
   --cx-ink-muted: #9aaba1;
   --cx-ink-subtle: #6d7c73;
@@ -104,10 +118,227 @@
   color-scheme: dark;
 }
 
+/* A Campus preview inside an Aurora page keeps the Campus typefaces. */
+[data-theme-preview^='campus'] {
+  --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/* ------------------------------------------------------------------ */
+/* Aurora Glass: deep navy, violet, electric blue and mint.            */
+/* Raw palette (--ag-*) per variant, then one map onto the semantic    */
+/* tokens, so every student and admin component follows.               */
+/* ------------------------------------------------------------------ */
+:root.theme-aurora,
+[data-theme-preview='aurora-light'],
+[data-theme-preview='admin-light'] {
+  --ag-canvas: #f4f3fb;
+  /* Ambient aurora light behind the glass. */
+  --ag-ambient-1: rgb(167 139 250 / 0.3);
+  --ag-ambient-2: rgb(96 165 250 / 0.26);
+  --ag-ambient-3: rgb(52 211 153 / 0.18);
+
+  /* Glass: resting surface, floating layer, inset well, tint, hover. */
+  --ag-glass: rgb(255 255 255 / 0.62);
+  --ag-glass-strong: rgb(255 255 255 / 0.86);
+  --ag-field: rgb(255 255 255 / 0.72);
+  --ag-glass-muted: rgb(30 41 99 / 0.05);
+  --ag-glass-hover: rgb(255 255 255 / 0.84);
+  --ag-line: rgb(30 41 99 / 0.11);
+  --ag-line-strong: rgb(30 41 99 / 0.2);
+  /* Top-edge light on glass, and the faint sheen across a surface. */
+  --ag-inner: inset 0 1px 0 0 rgb(255 255 255 / 0.75);
+  --ag-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 42%);
+  --ag-reflection: rgb(255 255 255 / 0.55);
+
+  --ag-ink: #0e1530;
+  --ag-ink-muted: #444d72;
+  --ag-ink-subtle: #5f6789;
+
+  /* Accent: text-safe on glass; `solid` carries white text; `on` is text on the accent fill. */
+  --ag-accent: #4f46e5;
+  --ag-accent-hover: #4338ca;
+  --ag-accent-solid: #4f46e5;
+  --ag-on-accent: #ffffff;
+  --ag-accent-soft: rgb(79 70 229 / 0.1);
+  --ag-accent-soft-ink: #3730a3;
+  --ag-electric: #2a50c2;
+  --ag-mint: #0b6b4a;
+  --ag-gradient: linear-gradient(135deg, #5b4fe8 0%, #3a63e6 100%);
+  --ag-cover: linear-gradient(120deg, #8f7cf8 0%, #6d9cf7 55%, #6fd8b8 120%);
+  --ag-gold-soft: rgb(245 158 11 / 0.14);
+  --ag-gold-ink: #8a5409;
+
+  /* Status: healthy · needs review · serious · critical · informational (each >= 4.5:1 on its own 12% tint). */
+  --ag-success: #0b6b4a;
+  --ag-warning: #8a4205;
+  --ag-serious: #ab3a0b;
+  --ag-danger: #b42525;
+  --ag-info: #2a50c2;
+  --ag-danger-solid: #c42b2b;
+  --ag-danger-soft: rgb(196 43 43 / 0.09);
+  --ag-danger-ink: #a51f1f;
+
+  --ag-focus: rgb(79 70 229 / 0.28);
+  --ag-dot: rgb(30 41 99 / 0.07);
+  --ag-shadow-soft: var(--ag-inner), 0 1px 2px rgb(30 41 99 / 0.05), 0 10px 28px -14px rgb(30 41 99 / 0.18);
+  --ag-shadow-lift: var(--ag-inner), 0 2px 6px rgb(30 41 99 / 0.06), 0 28px 56px -24px rgb(30 41 99 / 0.32);
+  --ag-shadow-glow: 0 0 0 1px rgb(79 70 229 / 0.18), 0 12px 30px -12px rgb(79 70 229 / 0.45);
+  --ag-shadow-button: inset 0 1px 0 0 rgb(255 255 255 / 0.22), 0 8px 20px -10px rgb(79 70 229 / 0.65);
+
+  /* Charts (validated against the light glass: adjacent CVD ΔE >= 8.4, normal vision >= 25.8). */
+  --ag-chart-grid: #e3e1f0;
+  --ag-series-1: #7d71e2;
+  --ag-series-2: #199e70;
+  --ag-series-3: #d95926;
+  --ag-series-4: #3987e5;
+  --ag-series-neutral: #a6a4b6;
+
+  color-scheme: light;
+}
+
+:root.theme-aurora.dark,
+[data-theme-preview='aurora-dark'],
+[data-theme-preview='admin-dark'] {
+  --ag-canvas: #070a1c;
+  --ag-ambient-1: rgb(124 92 255 / 0.28);
+  --ag-ambient-2: rgb(56 132 255 / 0.22);
+  --ag-ambient-3: rgb(45 212 170 / 0.12);
+
+  --ag-glass: rgb(22 29 62 / 0.58);
+  --ag-glass-strong: rgb(14 19 44 / 0.86);
+  --ag-field: rgb(8 12 32 / 0.55);
+  --ag-glass-muted: rgb(160 174 255 / 0.07);
+  --ag-glass-hover: rgb(34 43 86 / 0.66);
+  --ag-line: rgb(160 174 255 / 0.13);
+  --ag-line-strong: rgb(160 174 255 / 0.24);
+  --ag-inner: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
+  --ag-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0) 40%);
+  --ag-reflection: rgb(255 255 255 / 0.07);
+
+  --ag-ink: #eef1ff;
+  --ag-ink-muted: #a8b1d6;
+  --ag-ink-subtle: #8a93ba;
+
+  --ag-accent: #8b9cff;
+  --ag-accent-hover: #a5b1ff;
+  --ag-accent-solid: #5a5df0;
+  --ag-on-accent: #070a1c;
+  --ag-accent-soft: rgb(139 156 255 / 0.15);
+  --ag-accent-soft-ink: #c9d0ff;
+  --ag-electric: #7cb0ff;
+  --ag-mint: #5fe3b0;
+  --ag-gradient: linear-gradient(135deg, #6d5cf6 0%, #3563e9 100%);
+  --ag-cover: linear-gradient(120deg, #3a2d9c 0%, #2645b5 55%, #11716c 120%);
+  --ag-gold-soft: rgb(251 191 36 / 0.13);
+  --ag-gold-ink: #fcd34d;
+
+  --ag-success: #5fe3b0;
+  --ag-warning: #fbbf24;
+  --ag-serious: #fb923c;
+  --ag-danger: #f87171;
+  --ag-info: #7cb0ff;
+  --ag-danger-solid: #d0343f;
+  --ag-danger-soft: rgb(248 113 113 / 0.13);
+  --ag-danger-ink: #fca5a5;
+
+  --ag-focus: rgb(139 156 255 / 0.35);
+  --ag-dot: rgb(200 210 255 / 0.06);
+  --ag-shadow-soft: var(--ag-inner), 0 1px 2px rgb(2 4 16 / 0.45), 0 12px 32px -16px rgb(2 4 16 / 0.7);
+  --ag-shadow-lift: var(--ag-inner), 0 0 0 1px rgb(160 174 255 / 0.06), 0 28px 56px -22px rgb(2 4 16 / 0.85);
+  --ag-shadow-glow: 0 0 0 1px rgb(139 156 255 / 0.28), 0 12px 32px -12px rgb(108 120 255 / 0.5);
+  --ag-shadow-button: inset 0 1px 0 0 rgb(255 255 255 / 0.18), 0 10px 24px -10px rgb(91 93 240 / 0.7);
+
+  /* Charts (validated against the dark glass: adjacent CVD ΔE >= 9.4, normal vision >= 24.6). */
+  --ag-chart-grid: #232a50;
+  --ag-series-1: #9085e9;
+  --ag-series-2: #199e70;
+  --ag-series-3: #d95926;
+  --ag-series-4: #3987e5;
+  --ag-series-neutral: #6b6488;
+
+  color-scheme: dark;
+}
+
+/* Shared by both variants: typography, blur, motion, and the map onto the semantic tokens. */
+:root.theme-aurora,
+[data-theme-preview^='aurora'],
+[data-theme-preview^='admin'] {
+  /* Geometric display headings, readable body text, monospace only for technical details. */
+  --font-display: 'Space Grotesk', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --ag-blur: 18px;
+  --ag-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ag-duration-fast: 150ms;
+  --ag-duration: 240ms;
+  --ag-duration-slow: 420ms;
+
+  --cx-canvas: var(--ag-canvas);
+  --cx-surface: var(--ag-glass);
+  --cx-surface-muted: var(--ag-glass-muted);
+  --cx-overlay: var(--ag-glass-strong);
+  --cx-ink: var(--ag-ink);
+  --cx-ink-muted: var(--ag-ink-muted);
+  --cx-ink-subtle: var(--ag-ink-subtle);
+  --cx-line: var(--ag-line);
+  --cx-line-strong: var(--ag-line-strong);
+
+  --cx-primary: var(--ag-accent);
+  --cx-primary-hover: var(--ag-accent-hover);
+  --cx-primary-fg: var(--ag-on-accent);
+  --cx-primary-soft: var(--ag-accent-soft);
+  --cx-primary-soft-fg: var(--ag-accent-soft-ink);
+
+  --cx-accent-soft: var(--ag-gold-soft);
+  --cx-accent-fg: var(--ag-gold-ink);
+
+  --cx-danger: var(--ag-danger);
+  --cx-danger-soft: var(--ag-danger-soft);
+  --cx-danger-fg: var(--ag-danger-ink);
+
+  --cx-focus: var(--ag-focus);
+  --cx-dot: var(--ag-dot);
+
+  --cx-shadow-soft: var(--ag-shadow-soft);
+  --cx-shadow-lift: var(--ag-shadow-lift);
+  --cx-shadow-glow: var(--ag-shadow-glow);
+}
+
+/* Phones get a lighter blur: cheaper to draw and still frosted. */
+@media (width < 48rem) {
+  :root.theme-aurora {
+    --ag-blur: 12px;
+  }
+}
+
+/* No backdrop-filter, or the OS asks for less transparency: near-opaque glass keeps text readable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root.theme-aurora {
+    --ag-glass: rgb(255 255 255 / 0.9);
+    --ag-glass-strong: rgb(255 255 255 / 0.98);
+  }
+  :root.theme-aurora.dark {
+    --ag-glass: rgb(20 27 58 / 0.92);
+    --ag-glass-strong: rgb(14 19 44 / 0.98);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root.theme-aurora {
+    --ag-glass: rgb(255 255 255 / 0.94);
+    --ag-glass-strong: #ffffff;
+  }
+  :root.theme-aurora.dark {
+    --ag-glass: rgb(20 27 58 / 0.96);
+    --ag-glass-strong: #0e132c;
+  }
+}
+
 @theme inline {
   --color-canvas: var(--cx-canvas);
   --color-surface: var(--cx-surface);
   --color-surface-muted: var(--cx-surface-muted);
+  --color-overlay: var(--cx-overlay);
   --color-ink: var(--cx-ink);
   --color-ink-muted: var(--cx-ink-muted);
   --color-ink-subtle: var(--cx-ink-subtle);
@@ -195,76 +426,498 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* ------------------------------------------------------------------ */
-/* Admin control center: black + dark purple + neon violet.            */
-/* A separate visual system from the student app. The `admin-theme`    */
-/* class is put on <html> only while an /admin page is open            */
-/* (layouts/AdminLayout.jsx), so the student green theme never changes. */
-/* It also re-points the semantic tokens, so shared UI pieces (inputs,  */
-/* modals, toasts, the opportunity form) follow the admin palette.      */
-/* ------------------------------------------------------------------ */
-:root {
-  --ax-bg: #08060f;
-  --ax-bg-2: #0d0918;
-  --ax-card: #120d20;
-  --ax-card-hover: #181029;
-  --ax-violet: #8b5cf6;
-  --ax-neon: #a855f7;
-  --ax-deep: #6d28d9;
-  --ax-border: #2e1b4d;
-  --ax-border-strong: #4a2d78;
-  --ax-text: #f5f3ff;
-  --ax-muted: #a78bfa;
-  --ax-subtle: #8b7fb0;
-  --ax-success: #34d399;
-  --ax-warning: #fbbf24;
-  --ax-serious: #fb923c;
-  --ax-danger: #f87171;
-  --ax-grid: rgb(139 92 246 / 0.07);
-  --ax-chart-grid: #241640;
-  /* Chart series (validated against --ax-card: adjacent CVD ΔE >= 9.4, normal-vision >= 24.6). */
-  --ax-series-1: #9085e9;
-  --ax-series-2: #199e70;
-  --ax-series-3: #d95926;
-  --ax-series-4: #3987e5;
-  --ax-series-neutral: #6b6488;
+/* Localized loading shimmer for skeletons (still in reduced motion). */
+@utility shimmer {
+  background-image: linear-gradient(100deg, transparent 20%, var(--cx-shimmer, rgb(255 255 255 / 0.07)) 50%, transparent 80%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: cx-shimmer 1.5s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
+@keyframes cx-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Aurora Glass surfaces and motion                                    */
+/* The glass-* classes are hooks on shared components: they do        */
+/* nothing in Campus themes, so the green look is unchanged.           */
+/* ------------------------------------------------------------------ */
+
+/* The ambient aurora: three soft colour fields on one fixed layer behind the page. */
+:root.theme-aurora body::before {
+  content: '';
+  position: fixed;
+  inset: -12vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42vmax 32vmax at 14% 10%, var(--ag-ambient-1), transparent 70%),
+    radial-gradient(38vmax 30vmax at 88% 16%, var(--ag-ambient-2), transparent 70%),
+    radial-gradient(46vmax 34vmax at 62% 100%, var(--ag-ambient-3), transparent 70%);
+}
+
+/* Students' aurora drifts very slowly on larger screens (transform only, so it stays on the compositor).
+   The admin console keeps a still background; phones and reduced motion get no animation. */
+@media (prefers-reduced-motion: no-preference) and (width >= 64rem) {
+  :root.theme-aurora:not(.admin-theme) body::before {
+    animation: ag-drift 70s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes ag-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4vmax, 3vmax, 0) scale(1.06);
+  }
+}
+
+/* Floating layers (menus, dialogs, toasts, sticky bars) are frosted: content behind them blurs. */
+:root.theme-aurora .glass-overlay {
+  -webkit-backdrop-filter: blur(var(--ag-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--ag-blur)) saturate(1.5);
+}
+
+/* Resting cards: a faint top sheen (replacing any paper texture). No blur, so long feeds and tables stay
+   cheap to scroll. */
+:root.theme-aurora .glass-card {
+  background-image: var(--ag-sheen);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Interactive cards: a slow light reflection sweeps across on hover. */
+:root.theme-aurora .glass-card.glass-reflect {
+  background-image: linear-gradient(115deg, transparent 35%, var(--ag-reflection) 50%, transparent 65%), var(--ag-sheen);
+  background-size: 260% 100%, 100% 100%;
+  background-position: 100% 0, 0 0;
+  background-repeat: no-repeat;
+  transition-property: transform, box-shadow, border-color, background-position;
+  transition-duration: 300ms, 300ms, 300ms, 900ms;
+  transition-timing-function: var(--ag-ease);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :root.theme-aurora .glass-card.glass-reflect:hover {
+    background-position: 0 0, 0 0;
+  }
+}
+
+/* The default profile cover (Campus Green style) becomes an aurora band: violet → electric blue → mint. */
+:root.theme-aurora .glass-cover {
+  background-image: var(--ag-cover);
+  color: #ffffff;
+}
+
+/* Primary actions: the violet → electric-blue gradient with white text. */
+:root.theme-aurora .glass-primary {
+  background-image: var(--ag-gradient);
+  color: #ffffff;
+  box-shadow: var(--ag-shadow-button);
+}
+:root.theme-aurora .glass-primary:hover {
+  filter: brightness(1.08) saturate(1.05);
+  box-shadow: var(--ag-shadow-button), var(--ag-shadow-glow);
+}
+
+/* Destructive actions get a deeper red so white text stays readable; no glow. */
+:root.theme-aurora .glass-danger {
+  background-color: var(--ag-danger-solid);
+  color: #ffffff;
+}
+:root.theme-aurora .glass-danger:hover {
+  filter: brightness(1.08);
+}
+
+/* Theme changes crossfade the whole page once (hooks/useThemeSync.js uses the View Transitions API). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-campus);
+}
+
+/* Chart marks that draw in once when they first appear (motion-safe only). */
+.chart-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.chart-grow {
+  transform-origin: left center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chart-draw {
+    animation: chart-draw 900ms var(--ease-campus) both;
+  }
+  .chart-grow {
+    animation: chart-grow 600ms var(--ease-campus) both;
+  }
+  .chart-fade {
+    animation: chart-fade 500ms ease-out both;
+  }
+}
+@keyframes chart-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes chart-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes chart-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Elite rank identities: the Gold, Silver and Bronze tokens of the    */
+/* CampusX top three (constants/elite.js, components/elite/*). Who     */
+/* holds one always comes from the API. Every text colour below keeps  */
+/* >= 4.5:1 on light and dark Campus and Aurora surfaces (including    */
+/* the green "you" row), and names keep a solid `color` under the      */
+/* gradient, so text stays readable where gradient text isn't          */
+/* supported. Motion is opt-in per element and off for reduced motion. */
+/* ------------------------------------------------------------------ */
+:root,
+[data-theme-preview$='light'] {
+  /* Name text: ink (solid fallback), deep and shine stops. */
+  --elite-gold-ink: #7a5200;
+  --elite-gold-deep: #5c3d00;
+  --elite-gold-shine: #8f6000;
+  --elite-silver-ink: #4a5568;
+  --elite-silver-deep: #2f3a48;
+  --elite-silver-shine: #5b6676;
+  --elite-bronze-ink: #8a4a1c;
+  --elite-bronze-deep: #6b3511;
+  --elite-bronze-shine: #9a5424;
+  /* Token pills: label, tint, tint end, border. */
+  --elite-gold-label: #5c3d00;
+  --elite-gold-tint: #fcefc7;
+  --elite-gold-tint-2: #f9df95;
+  --elite-gold-line: #e2bd55;
+  --elite-silver-label: #2f3a48;
+  --elite-silver-tint: #f1f3f7;
+  --elite-silver-tint-2: #dde3ea;
+  --elite-silver-line: #c0c9d4;
+  --elite-bronze-label: #6b3511;
+  --elite-bronze-tint: #fbe8d8;
+  --elite-bronze-tint-2: #f4d0b0;
+  --elite-bronze-line: #dda376;
+  --elite-gold-glow: rgb(226 168 32 / 0.5);
+  --elite-silver-glow: rgb(100 116 139 / 0.3);
+  --elite-bronze-glow: rgb(176 96 44 / 0.32);
+}
+
+.dark,
+[data-theme-preview$='dark'] {
+  --elite-gold-ink: #f5c542;
+  --elite-gold-deep: #d9a21f;
+  --elite-gold-shine: #fff3cf;
+  --elite-silver-ink: #dde3ec;
+  --elite-silver-deep: #b8c2d0;
+  --elite-silver-shine: #f5f7fa;
+  --elite-bronze-ink: #e8a26b;
+  --elite-bronze-deep: #d98a4e;
+  --elite-bronze-shine: #f6c79e;
+  --elite-gold-label: #f5c542;
+  --elite-gold-tint: rgb(245 197 66 / 0.15);
+  --elite-gold-tint-2: rgb(245 197 66 / 0.07);
+  --elite-gold-line: rgb(245 197 66 / 0.42);
+  --elite-silver-label: #dde3ec;
+  --elite-silver-tint: rgb(221 227 236 / 0.12);
+  --elite-silver-tint-2: rgb(221 227 236 / 0.05);
+  --elite-silver-line: rgb(221 227 236 / 0.32);
+  --elite-bronze-label: #e8a26b;
+  --elite-bronze-tint: rgb(232 162 107 / 0.15);
+  --elite-bronze-tint-2: rgb(232 162 107 / 0.06);
+  --elite-bronze-line: rgb(232 162 107 / 0.42);
+  --elite-gold-glow: rgb(245 197 66 / 0.42);
+  --elite-silver-glow: rgb(203 213 225 / 0.22);
+  --elite-bronze-glow: rgb(232 162 107 / 0.26);
+}
+
+/* One tier's set, picked by the --gold / --silver / --bronze modifier of any elite element. */
+.elite-name--gold,
+.elite-frame--gold,
+.elite-token--gold,
+.elite-tier--gold {
+  --elite-ink: var(--elite-gold-ink);
+  --elite-deep: var(--elite-gold-deep);
+  --elite-shine: var(--elite-gold-shine);
+  --elite-label: var(--elite-gold-label);
+  --elite-tint: var(--elite-gold-tint);
+  --elite-tint-2: var(--elite-gold-tint-2);
+  --elite-line: var(--elite-gold-line);
+  --elite-glow: var(--elite-gold-glow);
+  --elite-frame: conic-gradient(from 200deg, #fff1b8, #f2c94c, #b8860b, #f7d774, #fff4c9, #c99a1e, #f2c94c, #fff1b8);
+  --elite-frame-solid: #d4a72c;
+  --elite-emblem-bg: linear-gradient(145deg, #ffe7a0, #f2b92c 60%, #d99a12);
+  --elite-emblem-ink: #4f3200;
+}
+.elite-name--silver,
+.elite-frame--silver,
+.elite-token--silver,
+.elite-tier--silver {
+  --elite-ink: var(--elite-silver-ink);
+  --elite-deep: var(--elite-silver-deep);
+  --elite-shine: var(--elite-silver-shine);
+  --elite-label: var(--elite-silver-label);
+  --elite-tint: var(--elite-silver-tint);
+  --elite-tint-2: var(--elite-silver-tint-2);
+  --elite-line: var(--elite-silver-line);
+  --elite-glow: var(--elite-silver-glow);
+  --elite-frame: conic-gradient(from 200deg, #f3f5f8, #b9c2ce, #7d8897, #dfe4ea, #f6f8fa, #94a0ae, #cfd6df, #f3f5f8);
+  --elite-frame-solid: #94a0ae;
+  --elite-emblem-bg: linear-gradient(145deg, #f8fafc, #cbd3dd 60%, #a3aebc);
+  --elite-emblem-ink: #273241;
+}
+.elite-name--bronze,
+.elite-frame--bronze,
+.elite-token--bronze,
+.elite-tier--bronze {
+  --elite-ink: var(--elite-bronze-ink);
+  --elite-deep: var(--elite-bronze-deep);
+  --elite-shine: var(--elite-bronze-shine);
+  --elite-label: var(--elite-bronze-label);
+  --elite-tint: var(--elite-bronze-tint);
+  --elite-tint-2: var(--elite-bronze-tint-2);
+  --elite-line: var(--elite-bronze-line);
+  --elite-glow: var(--elite-bronze-glow);
+  --elite-frame: conic-gradient(from 200deg, #ffd9b8, #d98a4e, #8c4a1f, #e8a26b, #ffe1c6, #a65a2a, #e09a63, #ffd9b8);
+  --elite-frame-solid: #c47a45;
+  --elite-emblem-bg: linear-gradient(145deg, #fbd5b4, #de935a 60%, #b0652f);
+  --elite-emblem-ink: #3f1d06;
+}
+
+/* Names: metallic gradient text over a solid, readable colour. */
+.elite-name {
+  color: var(--elite-ink);
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .elite-name {
+    background-image: linear-gradient(100deg, var(--elite-deep) 0%, var(--elite-ink) 32%, var(--elite-deep) 55%, var(--elite-ink) 78%, var(--elite-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  /* A narrow highlight that sweeps across now and then (gold), slower and softer for silver and bronze. */
+  .elite-name--shine {
+    background-image:
+      linear-gradient(100deg, transparent 42%, var(--elite-shine) 50%, transparent 58%),
+      linear-gradient(100deg, var(--elite-deep) 0%, var(--elite-ink) 32%, var(--elite-deep) 55%, var(--elite-ink) 78%, var(--elite-deep) 100%);
+    background-size: 260% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: 160% 0, 0 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .elite-name--shine {
+    animation: elite-shine 9s ease-in-out 1.2s infinite;
+  }
+  .elite-name--shine.elite-name--gold {
+    animation-duration: 6.5s;
+  }
+}
+@keyframes elite-shine {
+  0%,
+  64% {
+    background-position: 160% 0, 0 0;
+  }
+  100% {
+    background-position: -60% 0, 0 0;
+  }
+}
+
+/* Frames: a metallic ring just outside the photo (never over it), sized by --elite-ring / --elite-radius. */
+.elite-frame {
+  isolation: isolate;
+}
+.elite-frame__ring {
+  position: absolute;
+  inset: calc(var(--elite-ring) * -1);
+  border-radius: calc(var(--elite-radius) + var(--elite-ring));
+  padding: var(--elite-ring);
+  background: var(--elite-frame);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+/* Inside: the ring takes the wrapper's own padding (the profile header's photo border). */
+.elite-frame--inside .elite-frame__ring {
+  inset: 0;
+  border-radius: var(--elite-radius);
+}
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .elite-frame__ring {
+    padding: 0;
+    background: none;
+    box-shadow: inset 0 0 0 var(--elite-ring) var(--elite-frame-solid);
+  }
+}
+.elite-frame__emblem {
+  position: absolute;
+  top: calc(var(--elite-ring) * -1 - 0.125rem);
+  right: calc(var(--elite-ring) * -1 - 0.125rem);
+  display: grid;
+  width: var(--elite-emblem);
+  height: var(--elite-emblem);
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--elite-emblem-bg);
+  color: var(--elite-emblem-ink);
+  box-shadow: 0 0 0 2px var(--cx-surface), 0 2px 6px rgb(0 0 0 / 0.2);
+}
+.elite-frame__emblem svg {
+  width: 62%;
+  height: 62%;
+}
+/* Soft glow behind the frame (profile header, Hall of Fame). Only gold breathes, slowly. */
+.elite-frame--glow::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: calc(var(--elite-ring) * -1);
+  border-radius: calc(var(--elite-radius) + var(--elite-ring));
+  box-shadow: 0 0 22px 3px var(--elite-glow);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.elite-frame--inside.elite-frame--glow::after {
+  inset: 0;
+  border-radius: var(--elite-radius);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .elite-frame--glow.elite-frame--gold::after {
+    animation: elite-glow 4.8s ease-in-out infinite alternate;
+  }
+}
+@keyframes elite-glow {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* Token pills: the tier's name next to a student's name ("Golden Champion #1"). */
+.elite-token {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--elite-line);
+  border-radius: 9999px;
+  background-color: var(--elite-tint);
+  background-image: linear-gradient(135deg, var(--elite-tint), var(--elite-tint-2));
+  padding: 0.25rem 0.55rem;
+  color: var(--elite-label);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.elite-token svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
+}
+.elite-token--icon {
+  width: 1.375rem;
+  height: 1.375rem;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Tier-tinted surfaces (Hall of Fame cards, the celebration), over the normal card colour. */
+.elite-tier-surface {
+  background-image: linear-gradient(180deg, var(--elite-tint), transparent 70%);
+}
+.elite-tier-ink {
+  color: var(--elite-label);
+}
+
+/* A single highlight that passes once over an element (a token arriving, a celebration). */
+.elite-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.elite-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .elite-sweep::after {
+    animation: elite-sweep 1.4s var(--ease-campus) 0.3s 1 both;
+  }
+}
+@keyframes elite-sweep {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin control center: Aurora Glass, as a security operations and    */
+/* campus management console. `admin-theme` is on <html> only while   */
+/* an /admin page is open, together with `theme-aurora` and the        */
+/* admin's own light/dark choice, so the student's theme never leaks   */
+/* in. The --ax-* tokens below are what admin components use.          */
+/* ------------------------------------------------------------------ */
 :root.admin-theme,
-:root.admin-theme.dark {
-  --cx-canvas: var(--ax-bg);
-  --cx-surface: var(--ax-card);
-  --cx-surface-muted: #1a1230;
-  --cx-ink: var(--ax-text);
-  --cx-ink-muted: #c4b5fd;
-  --cx-ink-subtle: var(--ax-subtle);
-  --cx-line: var(--ax-border);
-  --cx-line-strong: var(--ax-border-strong);
-  --cx-primary: var(--ax-violet);
-  --cx-primary-hover: var(--ax-neon);
-  --cx-primary-fg: #ffffff;
-  --cx-primary-soft: rgb(139 92 246 / 0.16);
-  --cx-primary-soft-fg: #d8ccff;
-  --cx-accent-soft: rgb(251 191 36 / 0.14);
-  --cx-accent-fg: #fcd34d;
-  --cx-danger: #ef4444;
-  --cx-danger-soft: rgb(239 68 68 / 0.14);
-  --cx-danger-fg: #fca5a5;
-  --cx-focus: rgb(168 85 247 / 0.35);
-  --cx-dot: rgb(167 139 250 / 0.08);
-  --cx-shadow-soft: 0 1px 2px rgb(0 0 0 / 0.6);
-  --cx-shadow-lift: 0 24px 48px -20px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(139 92 246 / 0.12);
-  --cx-shadow-glow: 0 0 0 1px rgb(168 85 247 / 0.35), 0 10px 32px -10px rgb(168 85 247 / 0.55);
-  color-scheme: dark;
-}
-
-:root.admin-theme body {
-  background-color: var(--ax-bg);
+[data-theme-preview^='admin'] {
+  --ax-bg: var(--ag-canvas);
+  --ax-bg-2: var(--ag-field);
+  --ax-card: var(--ag-glass);
+  --ax-card-hover: var(--ag-glass-hover);
+  /* Selection, focus and primary actions (white text on it). */
+  --ax-violet: var(--ag-accent-solid);
+  /* Highlight ink: accent icons, live marks, links. */
+  --ax-neon: var(--ag-electric);
+  --ax-deep: var(--ag-accent-solid);
+  --ax-on-accent: #ffffff;
+  /* Text on a tinted violet fill (selected pills, initials). */
+  --ax-accent-fg: var(--ag-accent-soft-ink);
+  --ax-border: var(--ag-line);
+  --ax-border-strong: var(--ag-line-strong);
+  --ax-text: var(--ag-ink);
+  --ax-muted: var(--ag-ink-muted);
+  --ax-subtle: var(--ag-ink-subtle);
+  --ax-success: var(--ag-success);
+  --ax-warning: var(--ag-warning);
+  --ax-serious: var(--ag-serious);
+  --ax-danger: var(--ag-danger);
+  --ax-danger-fg: var(--ag-danger-ink);
+  --ax-info: var(--ag-info);
+  --ax-grid: color-mix(in srgb, var(--ag-ink) 4%, transparent);
+  --ax-chart-grid: var(--ag-chart-grid);
+  --ax-series-1: var(--ag-series-1);
+  --ax-series-2: var(--ag-series-2);
+  --ax-series-3: var(--ag-series-3);
+  --ax-series-4: var(--ag-series-4);
+  --ax-series-neutral: var(--ag-series-neutral);
 }
 
 :root.admin-theme ::selection {
-  background-color: rgb(168 85 247 / 0.35);
-  color: #ffffff;
+  background-color: var(--ag-accent-soft);
+  color: var(--ag-ink);
 }
 
 @theme inline {
@@ -275,6 +928,8 @@
   --color-ax-violet: var(--ax-violet);
   --color-ax-neon: var(--ax-neon);
   --color-ax-deep: var(--ax-deep);
+  --color-ax-on-accent: var(--ax-on-accent);
+  --color-ax-accent-fg: var(--ax-accent-fg);
   --color-ax-border: var(--ax-border);
   --color-ax-border-strong: var(--ax-border-strong);
   --color-ax-text: var(--ax-text);
@@ -284,9 +939,11 @@
   --color-ax-warning: var(--ax-warning);
   --color-ax-serious: var(--ax-serious);
   --color-ax-danger: var(--ax-danger);
+  --color-ax-danger-fg: var(--ax-danger-fg);
+  --color-ax-info: var(--ax-info);
 }
 
-/* Thin operations-center grid behind admin pages. */
+/* Hairline operations-center grid over the ambient light. */
 @utility admin-grid {
   background-image:
     linear-gradient(var(--ax-grid) 1px, transparent 1px),
@@ -294,16 +951,69 @@
   background-size: 36px 36px;
 }
 
-/* Glass panel with a hairline violet edge. */
+/* Glass panel: translucent fill, hairline border, top-edge light. No blur: panels hold tables and
+   charts that scroll, and the ambient light behind them is already soft. */
 @utility admin-panel {
   border: 1px solid var(--ax-border);
   border-radius: 1rem;
-  background: linear-gradient(180deg, rgb(18 13 32 / 0.94), rgb(13 9 24 / 0.94));
-  box-shadow: inset 0 1px 0 rgb(167 139 250 / 0.06);
-  backdrop-filter: blur(10px);
+  background-color: var(--ax-card);
+  background-image: var(--ag-sheen);
+  box-shadow: var(--ag-shadow-soft);
 }
 
-/* Subtle neon glow for highlighted elements (focus targets, live badges). */
+/* Floating admin layers (dropdowns, popovers): stronger glass with blur. */
+@utility admin-float {
+  border: 1px solid var(--ax-border-strong);
+  border-radius: 1rem;
+  background-color: var(--ag-glass-strong);
+  box-shadow: var(--ag-shadow-lift);
+  -webkit-backdrop-filter: blur(var(--ag-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--ag-blur)) saturate(1.5);
+}
+
+/* Restrained accent glow for highlighted elements (focus targets, live badges). */
 @utility admin-glow {
-  box-shadow: 0 0 0 1px rgb(168 85 247 / 0.32), 0 8px 28px -12px rgb(168 85 247 / 0.6);
+  box-shadow: var(--ag-shadow-glow);
+}
+
+/* Admin section labels: small caps in the body face (monospace is kept for IDs, times and metrics). */
+@utility admin-label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ */
+/* Resume printing (components/resume/ResumePrint.jsx)                 */
+/* ------------------------------------------------------------------ */
+/* Only the resume's pages print, one A4 sheet each, with no browser margins. */
+.resume-print-root {
+  display: none;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html.printing-resume,
+  html.printing-resume body {
+    background: #ffffff !important;
+  }
+  html.printing-resume body > *:not(.resume-print-root) {
+    display: none !important;
+  }
+  html.printing-resume .resume-print-root {
+    display: block;
+  }
+  .resume-print-page {
+    display: block;
+    width: 210mm;
+    height: 297mm;
+    break-after: page;
+  }
+  .resume-print-page:last-child {
+    break-after: auto;
+  }
 }

@@ -24,7 +24,7 @@ export function CreatePost({ community = null }) {
 
   return (
     <>
-      <section aria-label={community ? `Post in ${community.name}` : 'Share with campus'} className="campus-grid overflow-hidden rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5">
+      <section aria-label={community ? `Post in ${community.name}` : 'Share with campus'} className="campus-grid overflow-hidden glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5">
         <div className="flex items-center gap-3">
           <Avatar src={user?.avatarUrl} name={name} size="md" />
           <motion.button
@@ -63,7 +63,7 @@ export function CreatePost({ community = null }) {
         animate={{ scale: 1, opacity: 1 }}
         whileTap={{ scale: 0.92 }}
         aria-label="Create a post"
-        className="fixed right-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 grid size-14 place-items-center rounded-2xl bg-primary text-primary-fg shadow-glow md:hidden"
+        className="fixed right-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 grid size-14 place-items-center rounded-2xl glass-primary bg-primary text-primary-fg shadow-glow md:hidden"
       >
         <Plus className="size-6" aria-hidden="true" />
       </motion.button>

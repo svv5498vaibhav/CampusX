@@ -18,7 +18,7 @@ const TRACKING_LABELS = { saved: 'Saved', interested: 'Interested', applied: 'Ap
 function Figure({ label, value, note }) {
   return (
     <div className="rounded-xl border border-ax-border bg-ax-bg-2/70 p-3.5">
-      <p className="font-mono text-[10px] tracking-[0.14em] text-ax-subtle uppercase">{label}</p>
+      <p className="admin-label text-ax-subtle">{label}</p>
       <p className="mt-1 font-display text-2xl font-bold text-ax-text tabular-nums">{Number(value ?? 0).toLocaleString()}</p>
       {note && <p className="mt-0.5 text-[11px] text-ax-subtle">{note}</p>}
     </div>
@@ -68,7 +68,7 @@ export default function AdminAnalytics() {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        eyebrow="Insights // Analytics"
+        eyebrow="Insights · Analytics"
         title="Platform analytics"
         description="Students, content, engagement, moderation and opportunities, counted from the CampusX database."
         actions={

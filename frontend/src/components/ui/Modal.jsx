@@ -103,7 +103,7 @@ export function Modal({
             aria-describedby={description ? descriptionId : undefined}
             tabIndex={-1}
             className={cn(
-              'relative flex max-h-[90dvh] w-full flex-col rounded-t-3xl border border-line bg-surface shadow-lift outline-none sm:rounded-3xl',
+              'glass-overlay relative flex max-h-[90dvh] w-full flex-col rounded-t-3xl border border-line bg-overlay shadow-lift outline-none sm:rounded-3xl',
               SIZES[size],
             )}
             initial={{ opacity: 0, y: 48 }}

@@ -1,5 +1,5 @@
-import { query } from 'express-validator';
-import { GAMIFICATION_RULES, RANKING_PERIOD_IDS } from '../data/gamificationOptions.js';
+import { param, query } from 'express-validator';
+import { ELITE_RANK_RULES, GAMIFICATION_RULES, RANKING_PERIOD_IDS } from '../data/gamificationOptions.js';
 import { pageRules } from './showcaseRules.js';
 
 /*
@@ -17,3 +17,8 @@ export const leaderboardRules = [
 export const fixedPeriodLeaderboardRules = pageRules(GAMIFICATION_RULES.leaderboardPageSize);
 
 export const transactionsRules = pageRules(GAMIFICATION_RULES.transactionPageSize);
+
+/** The Hall of Fame's transfer history is paged; nothing else is read from the request. */
+export const hallOfFameRules = pageRules(ELITE_RANK_RULES.hallOfFame.transfers);
+
+export const eliteHistoryRules = [param('userId').isMongoId().withMessage('Please choose a valid student.')];

@@ -55,3 +55,35 @@ export function runAccountCleanup(mongoUri, { env = {}, now } = {}) {
     });
   });
 }
+
+/**
+ * Elite rank snapshots in a separate process (tests/lib/elite-refresh.mjs), like a second API instance.
+ * `mode`: refresh (`times` at once) · fail-read · emit-twice (`event`). Resolves to { code, output, result }.
+ */
+export function runEliteRefresh(mongoUri, { mode = 'refresh', times = 1, event, env = {} } = {}) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['--import', HOOK, path.join(TESTS_DIR, 'lib', 'elite-refresh.mjs')], {
+      cwd: BACKEND,
+      env: {
+        ...process.env,
+        CAMPUSX_ELITE_MODE: mode,
+        CAMPUSX_ELITE_TIMES: String(times),
+        ...(event && { CAMPUSX_ELITE_EVENT: JSON.stringify(event) }),
+        CAMPUSX_TEST_ENV: JSON.stringify({ MONGODB_URI: mongoUri, NODE_ENV: 'development', JWT_SECRET, GAMIFICATION_TIMEZONE: 'Asia/Kolkata', ...env }),
+      },
+      windowsHide: true,
+    });
+    let output = '';
+    child.stdout.on('data', (chunk) => (output += chunk));
+    child.stderr.on('data', (chunk) => (output += chunk));
+    const timer = setTimeout(() => {
+      child.kill();
+      resolve({ code: 'timeout', output, result: null });
+    }, 60000);
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      const match = /ELITE (\{.*\}|\[.*\])/.exec(output);
+      resolve({ code, output, result: match ? JSON.parse(match[1]) : null });
+    });
+  });
+}

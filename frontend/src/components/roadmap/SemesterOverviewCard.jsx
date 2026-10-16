@@ -12,7 +12,7 @@ export function SemesterOverviewCard({ semester }) {
   const meta = SEMESTER_STATE_META[semester.state] ?? SEMESTER_STATE_META.upcoming;
   const { completed, required, optional, optionalCompleted, percentage } = semester.progress;
   return (
-    <div className="flex flex-col gap-5 rounded-3xl border border-line bg-surface p-5 shadow-soft sm:flex-row sm:items-center sm:p-6">
+    <div className="flex flex-col gap-5 glass-card rounded-3xl border border-line bg-surface p-5 shadow-soft sm:flex-row sm:items-center sm:p-6">
       <RoadmapProgressRing value={percentage} size={96} stroke={9} label={`Semester ${semester.semester} progress`} valueText={`${percentage}%: ${completed} of ${required} required milestones complete`} className="self-start sm:self-center">
         <span>
           <span className="block font-display text-2xl font-bold text-ink">{percentage}%</span>

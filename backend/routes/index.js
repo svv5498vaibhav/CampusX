@@ -19,6 +19,7 @@ import moderationRoutes from './moderationRoutes.js';
 import reportRoutes from './reportRoutes.js';
 import recommendationRoutes from './recommendationRoutes.js';
 import roadmapRoutes from './roadmapRoutes.js';
+import resumeRoutes from './resumeRoutes.js';
 import userRoutes from './userRoutes.js';
 import conversationRoutes from './conversationRoutes.js';
 
@@ -46,6 +47,7 @@ router.use('/reports', reportRoutes);
 router.use('/moderation', moderationRoutes);
 router.use('/recommendations', recommendationRoutes);
 router.use('/roadmap', roadmapRoutes);
+router.use('/resumes', resumeRoutes);
 router.use('/users', userRoutes);
 router.use('/conversations', conversationRoutes);
 router.use('/admin', adminRoutes);

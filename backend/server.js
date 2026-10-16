@@ -4,8 +4,10 @@ import app from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { startAccountDeletionCleanup, stopAccountDeletionCleanup } from './jobs/accountDeletionCleanup.js';
+import { startEliteRankRefresh, stopEliteRankRefresh } from './jobs/eliteRankRefresh.js';
 import { startDeadlineReminders, stopDeadlineReminders } from './jobs/opportunityDeadlineReminders.js';
 import { settled as accountDeletionsSettled } from './services/accountDeletionService.js';
+import { registerEliteRankListeners } from './services/eliteRankService.js';
 import { registerGamificationListeners, settled as gamificationSettled } from './services/gamificationEvents.js';
 import { registerNotificationListeners, settled as notificationsSettled } from './services/notificationEvents.js';
 import { registerRecommendationListeners, settled as recommendationsSettled } from './services/recommendationEvents.js';
@@ -41,6 +43,8 @@ registerGracefulShutdown(async () => {
   await stopAccountDeletionCleanup();
   await accountDeletionsSettled();
   await gamificationSettled();
+  // A ranking snapshot still running finishes (its notifications are then written below).
+  await stopEliteRankRefresh();
   await notificationsSettled();
   await recommendationsSettled();
   await Promise.allSettled([disconnectDatabase(), disconnectRedis()]);
@@ -59,6 +63,8 @@ async function start() {
   logCloudinaryStatus();
   // Points, levels and badges follow campus events (posts, projects, communities, ...).
   registerGamificationListeners();
+  // Elite rank tokens (Gold, Silver, Bronze) follow the top three of the CampusX rankings.
+  registerEliteRankListeners();
   // Notifications follow the same events; they are saved first, then delivered over Socket.IO.
   registerNotificationListeners();
   // Recommendations learn from the same events (likes, comments, memberships, tracking, profile edits).
@@ -69,6 +75,8 @@ async function start() {
   startDeadlineReminders();
   // Finishes account deletions a restart interrupted and retries files Cloudinary didn't remove yet.
   startAccountDeletionCleanup();
+  // Ranking snapshots for the elite rank tokens: shortly after start-up, then every few minutes.
+  startEliteRankRefresh();
 
   await listen(env.port);
   logger.info(`CampusX API running on http://localhost:${env.port} (${env.nodeEnv})`);

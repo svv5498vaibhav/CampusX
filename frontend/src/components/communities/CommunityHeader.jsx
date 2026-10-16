@@ -40,7 +40,7 @@ export function CommunityHeader({ community, onEdit }) {
   ];
 
   return (
-    <header className="overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+    <header className="overflow-hidden glass-card rounded-3xl border border-line bg-surface shadow-soft">
       <div className={cn('relative h-28 bg-linear-to-br sm:h-40', style.cover)}>
         {community.coverImageUrl && <img src={community.coverImageUrl} alt="" className="size-full object-cover" />}
         <div className="campus-grid absolute inset-0 opacity-40" aria-hidden="true" />

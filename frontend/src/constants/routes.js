@@ -11,6 +11,9 @@ export const ROUTES = Object.freeze({
   PROFILE_EDIT: '/profile/edit',
   // The student's Semester Roadmap (?semester=1..8 opens a semester).
   ROADMAP: '/profile/roadmap',
+  // Resume Builder: the student's saved resumes, and one resume in the editor (?step=… opens a step).
+  RESUME_BUILDER: '/resume-builder',
+  RESUME_EDITOR: '/resume-builder/:resumeId',
   COMMUNITIES: '/communities',
   COMMUNITY: '/communities/:communityId',
   PROJECTS: '/projects',
@@ -26,6 +29,8 @@ export const ROUTES = Object.freeze({
   OPPORTUNITIES_MY: '/opportunities/my',
   OPPORTUNITY: '/opportunities/:opportunityId',
   RANKINGS: '/rankings',
+  // Gold, Silver and Bronze token holders, past and present.
+  HALL_OF_FAME: '/rankings/hall-of-fame',
   BADGES: '/badges',
   POINT_ACTIVITY: '/gamification/activity',
   NOTIFICATIONS: '/notifications',
@@ -33,6 +38,8 @@ export const ROUTES = Object.freeze({
   CONVERSATION: '/messages/:conversationId',
   SEARCH: '/search',
   SAFETY: '/safety',
+  // Theme Studio: the app's look (and, for staff, the control center's), saved on this device.
+  THEME_STUDIO: '/theme-studio',
   COMMUNITY_GUIDELINES: '/community-guidelines',
   ANONYMOUS: '/anonymous',
   ANONYMOUS_NEW: '/anonymous/new',
@@ -57,6 +64,9 @@ export const postPath = (postId) => `/post/${encodeURIComponent(postId)}`;
 
 /** Another student's public profile. */
 export const profilePath = (userId) => `/profile/${encodeURIComponent(userId)}`;
+
+/** One resume in the Resume Builder editor, optionally on a step ("import", "design", ...). */
+export const resumeEditorPath = (resumeId, step) => `/resume-builder/${encodeURIComponent(resumeId)}${step ? `?step=${step}` : ''}`;
 
 /** One direct message conversation. */
 export const conversationPath = (conversationId) => `/messages/${encodeURIComponent(conversationId)}`;

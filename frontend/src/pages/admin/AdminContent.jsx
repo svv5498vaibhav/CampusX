@@ -69,7 +69,7 @@ export default function AdminContent() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader eyebrow="Campus management // Content" title="Content management" description="Review what students publish and act on it through Trust & Safety. Anonymous posts never show who wrote them." />
+      <AdminPageHeader eyebrow="Campus management · Content" title="Content management" description="Review what students publish and act on it through Trust & Safety. Anonymous posts never show who wrote them." />
       <AdminPanel label="Content" bodyClassName="space-y-4">
         <AdminTabs label="Content type" tabs={TYPE_TABS} value={filters.type} onChange={(type) => update({ type, status: 'all', verification: '', search: '', page: '1' })} />
         <AdminTabs label="Moderation status" tabs={statusTabs} value={filters.status} onChange={(status) => set({ status })} />

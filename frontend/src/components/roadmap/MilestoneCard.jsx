@@ -196,7 +196,7 @@ export function MilestoneCard({ milestone, pending, lastChange, focusRequest, on
                 type="button"
                 aria-disabled={Boolean(pending) || undefined}
                 onClick={() => act('completed')}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg shadow-soft transition-[background-color,transform,box-shadow] hover:bg-primary-hover hover:shadow-glow active:scale-[0.97] aria-disabled:opacity-60"
+                className="glass-primary inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg shadow-soft transition-[background-color,transform,box-shadow] hover:bg-primary-hover hover:shadow-glow active:scale-[0.97] aria-disabled:opacity-60"
               >
                 <CircleCheck className="size-4" aria-hidden="true" /> Mark complete
               </button>

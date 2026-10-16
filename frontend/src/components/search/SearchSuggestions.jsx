@@ -15,7 +15,7 @@ export const suggestionOptionId = (listId, index) => `${listId}-option-${index}`
  */
 export function SearchSuggestions({ id, items, activeIndex, onSelect, onHover, heading, loading = false, className }) {
   return (
-    <div className={cn('overflow-hidden rounded-2xl border border-line bg-surface shadow-lift', className)}>
+    <div className={cn('glass-overlay overflow-hidden rounded-2xl border border-line bg-overlay shadow-lift', className)}>
       {heading && <p className="px-4 pt-3 pb-1 text-xs font-bold tracking-wide text-ink-subtle uppercase" aria-hidden="true">{heading}</p>}
       <ul id={id} role="listbox" aria-label={heading ?? 'Search suggestions'} aria-busy={loading || undefined} className="max-h-[min(24rem,60dvh)] overflow-y-auto p-1.5">
         {items.map((item, index) => {

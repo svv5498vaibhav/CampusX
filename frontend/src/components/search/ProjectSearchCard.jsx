@@ -18,7 +18,7 @@ export function ProjectSearchCard({ project, headingLevel = 'h3', reason, menu }
   const owner = project.owner;
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="project" data-project-id={project.id}>
+    <article className="flex h-full flex-col overflow-hidden glass-card rounded-3xl border border-line bg-surface shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="project" data-project-id={project.id}>
       <Link to={path} tabIndex={-1} aria-hidden="true" className="relative block aspect-[16/8] overflow-hidden bg-primary-soft">
         {project.thumbnail ? (
           <img src={project.thumbnail.url} alt="" loading="lazy" className="size-full object-cover" />
@@ -28,7 +28,7 @@ export function ProjectSearchCard({ project, headingLevel = 'h3', reason, menu }
           </div>
         )}
         {project.featured && (
-          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-lg bg-surface/90 px-2 py-1 text-[11px] font-bold text-accent-fg">
+          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-lg bg-overlay/90 px-2 py-1 text-[11px] font-bold text-accent-fg">
             <Star className="size-3 fill-current" /> Featured
           </span>
         )}

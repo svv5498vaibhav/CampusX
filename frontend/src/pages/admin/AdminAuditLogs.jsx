@@ -39,7 +39,7 @@ function Actor({ log }) {
   return (
     <span className="block min-w-0">
       <span className="block truncate text-sm text-ax-text">{log.actor?.name ?? (log.actorRole === 'system' ? 'CampusX (automated)' : '—')}</span>
-      <span className="block font-mono text-[10px] tracking-wider text-ax-subtle uppercase">{ACTOR_ROLE_LABELS[log.actorRole] ?? log.actorRole}</span>
+      <span className="block admin-label text-ax-subtle">{ACTOR_ROLE_LABELS[log.actorRole] ?? log.actorRole}</span>
     </span>
   );
 }
@@ -104,7 +104,7 @@ export default function AdminAuditLogs() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader eyebrow="Security // Audit stream" title="Audit logs" description="Who did what, when, and from where: moderation decisions, account changes, report handling, opportunity changes, sign-ins, refused requests and anonymous-author lookups. Rows are never edited." />
+      <AdminPageHeader eyebrow="Security · Audit stream" title="Audit logs" description="Who did what, when, and from where: moderation decisions, account changes, report handling, opportunity changes, sign-ins, refused requests and anonymous-author lookups. Rows are never edited." />
       <AdminPanel label="Audit stream" bodyClassName="space-y-4">
         <AdminTabs label="Category" tabs={AUDIT_CATEGORIES} value={filters.category} onChange={(category) => set({ category })} />
         <FilterBar>
@@ -123,7 +123,7 @@ export default function AdminAuditLogs() {
               <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[820px] text-left text-sm">
                   <thead>
-                    <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">
+                    <tr className="border-b border-ax-border admin-label text-ax-subtle">
                       <th scope="col" className="py-2.5 pr-3 font-semibold">Time</th>
                       <th scope="col" className="py-2.5 pr-3 font-semibold">Actor</th>
                       <th scope="col" className="py-2.5 pr-3 font-semibold">Action</th>

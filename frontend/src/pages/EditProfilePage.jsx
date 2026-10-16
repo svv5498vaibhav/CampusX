@@ -286,13 +286,13 @@ export default function EditProfilePage() {
               <FieldError message={errors.interests} />
             </EditorCard>
 
-            <EditorCard id="style" title="Choose your campus style" description="Pick a look for your profile. The preview changes instantly.">
+            <EditorCard id="style" title="Choose your campus style" description="Pick a look for your profile. The preview changes instantly. The whole app's look lives in Theme Studio.">
               <ThemePicker themes={options.profileThemes} value={form.profileTheme} onChange={set('profileTheme')} />
               <FieldError message={errors.profileTheme} />
             </EditorCard>
 
             {/* Actions stay within reach while scrolling (above the phone tab bar). */}
-            <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-2xl border border-line bg-surface/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
+            <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-2xl border border-line bg-overlay/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
               <Button type="button" variant="ghost" onClick={cancel} disabled={isSaving}>
                 Cancel
               </Button>
@@ -316,14 +316,14 @@ export default function EditProfilePage() {
               <Eye className="size-4" aria-hidden="true" /> Live preview
             </p>
             <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[2rem] pb-2">
-              <ProfileView profile={preview} headingAs="h2" showCompletion={false} animate={false} />
+              <ProfileView profile={preview} headingAs="h2" showCompletion={false} animate={false} showEliteHistory={false} />
             </div>
           </div>
         </aside>
       </div>
 
       <Modal open={dialog === 'preview'} onClose={() => setDialog(null)} title="Preview" description="How your profile will look once saved." size="lg">
-        <ProfileView profile={preview} headingAs="h3" showCompletion={false} animate={false} />
+        <ProfileView profile={preview} headingAs="h3" showCompletion={false} animate={false} showEliteHistory={false} />
       </Modal>
 
       <Modal

@@ -1,5 +1,7 @@
 import {
   BADGES,
+  ELITE_RANK_RULES,
+  ELITE_TIERS,
   GAMIFICATION_RULES,
   LEVELS,
   NOT_REWARDED,
@@ -62,8 +64,14 @@ export function calculateLevel(totalPoints) {
 
 // ----------------------------------------------------------------------------- the student record
 
-/** Leaderboard pages are cached under a version that changes whenever any points change. */
-const touchRankings = () => setCache(RANKING_CACHE_VERSION_KEY, Date.now());
+/**
+ * Leaderboard pages are cached under a version that changes whenever any points change. The elite rank
+ * tokens follow the same changes (services/eliteRankService.js takes a new snapshot shortly after).
+ */
+async function touchRankings() {
+  await setCache(RANKING_CACHE_VERSION_KEY, Date.now());
+  emitCampusEvent(CAMPUS_EVENTS.GAMIFICATION_RANKINGS_CHANGED, {});
+}
 
 /**
  * Applies a point change to the student's record in one atomic update: totals, the weekly and monthly
@@ -403,6 +411,8 @@ export function getRules() {
     scopes: RANKING_SCOPES,
     periods: RANKING_PERIODS,
     tieBreakers: TIE_BREAKERS,
+    // Gold, Silver and Bronze: held by #1-#3 of this leaderboard, moved only by server-side ranking snapshots.
+    elite: { scope: ELITE_RANK_RULES.scope, period: ELITE_RANK_RULES.period, tiers: ELITE_TIERS, refreshEveryMinutes: ELITE_RANK_RULES.refreshEveryMinutes },
     timezone: env.gamificationTimezone,
     pageSizes: { leaderboard: GAMIFICATION_RULES.leaderboardPageSize, transactions: GAMIFICATION_RULES.transactionPageSize },
   };

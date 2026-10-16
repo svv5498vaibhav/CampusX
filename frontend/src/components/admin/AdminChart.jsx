@@ -50,7 +50,7 @@ export function LegendLine({ color }) {
 export function ChartTable({ caption, columns, rows }) {
   return (
     <details className="group mt-3 text-sm">
-      <summary className="cursor-pointer list-none font-mono text-[11px] tracking-[0.14em] text-ax-subtle uppercase hover:text-ax-muted focus-visible:text-ax-text">
+      <summary className="admin-label cursor-pointer list-none text-ax-subtle transition-colors hover:text-ax-muted focus-visible:text-ax-text">
         <span className="group-open:hidden">▸ View data table</span>
         <span className="hidden group-open:inline">▾ Hide data table</span>
       </summary>
@@ -174,25 +174,26 @@ export function LineChart({ days, series, height = 220, caption, className }) {
               <path
                 d={`M${x(0)},${y(0)} ${colored[0].values.map((value, index) => `L${x(index)},${y(value)}`).join(' ')} L${x(days.length - 1)},${y(0)} Z`}
                 fill={`url(#${gradientId})`}
+                className="chart-fade"
               />
             )}
             {colored.map((item) => (
-              <polyline key={item.id} fill="none" stroke={item.color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" points={item.values.map((value, index) => `${x(index)},${y(value)}`).join(' ')} />
+              <polyline key={item.id} className="chart-draw" pathLength="1" fill="none" stroke={item.color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" points={item.values.map((value, index) => `${x(index)},${y(value)}`).join(' ')} />
             ))}
             {active === null &&
-              colored.map((item) => <circle key={item.id} cx={x(days.length - 1)} cy={y(item.values.at(-1) ?? 0)} r="4" fill={item.color} stroke="var(--ax-card)" strokeWidth="2" />)}
+              colored.map((item) => <circle key={item.id} cx={x(days.length - 1)} cy={y(item.values.at(-1) ?? 0)} r="4" fill={item.color} stroke="var(--ax-bg)" strokeWidth="2" />)}
             {active !== null && (
               <g>
                 <line x1={x(active)} x2={x(active)} y1={pad.top} y2={pad.top + plotHeight} stroke="var(--ax-muted)" strokeOpacity="0.5" strokeWidth="1" />
                 {colored.map((item) => (
-                  <circle key={item.id} cx={x(active)} cy={y(item.values[active] ?? 0)} r="4" fill={item.color} stroke="var(--ax-card)" strokeWidth="2" />
+                  <circle key={item.id} cx={x(active)} cy={y(item.values[active] ?? 0)} r="4" fill={item.color} stroke="var(--ax-bg)" strokeWidth="2" />
                 ))}
               </g>
             )}
           </svg>
         )}
         {active !== null && width > 0 && (
-          <div className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-lg border border-ax-border-strong bg-ax-bg/95 px-3 py-2 text-xs shadow-lg" style={{ left: tooltipLeft }}>
+          <div className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-lg border border-ax-border-strong bg-[var(--ag-glass-strong)] px-3 py-2 text-xs shadow-[var(--ag-shadow-lift)] backdrop-blur-md" style={{ left: tooltipLeft }}>
             <p className="font-mono text-[10px] tracking-wider text-ax-subtle uppercase">{formatDay(days[active])}</p>
             <ul className="mt-1 space-y-0.5">
               {colored.map((item) => (
@@ -225,7 +226,7 @@ export function BarList({ items, caption, color = 'var(--ax-series-1)', emptyTex
           <li key={item.id} className="group grid grid-cols-[minmax(0,9rem)_1fr] items-center gap-3 sm:grid-cols-[minmax(0,11rem)_1fr]" title={`${item.label}: ${number(item.value)}`}>
             <span className="truncate text-sm text-ax-muted group-hover:text-ax-text">{item.label}</span>
             <span className="flex min-w-0 items-center gap-2">
-              <span className="h-3 rounded-r-[4px] transition-[filter] group-hover:brightness-125" style={{ width: `${Math.max(2, (item.value / max) * 100)}%`, backgroundColor: color, maxWidth: 'calc(100% - 3.5rem)' }} />
+              <span className="chart-grow h-3 rounded-r-[4px] transition-[filter] group-hover:brightness-110" style={{ width: `${Math.max(2, (item.value / max) * 100)}%`, backgroundColor: color, maxWidth: 'calc(100% - 3.5rem)' }} />
               <span className="shrink-0 font-mono text-xs text-ax-text tabular-nums">{number(item.value)}</span>
             </span>
           </li>
@@ -275,7 +276,7 @@ export function DonutChart({ items, caption, totalLabel = 'Total', size = 168, c
                     strokeDasharray={`${arc.length} ${circumference - arc.length}`}
                     strokeDashoffset={-arc.offset}
                     transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                    className="cursor-default transition-[stroke-width] duration-150"
+                    className="chart-fade cursor-default transition-[stroke-width] duration-150"
                     onPointerEnter={() => setActive(arc.id)}
                     onPointerLeave={() => setActive(null)}
                   />
@@ -292,7 +293,7 @@ export function DonutChart({ items, caption, totalLabel = 'Total', size = 168, c
             <li key={item.id}>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-ax-card-hover focus-visible:bg-ax-card-hover"
+                className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-ax-card-hover focus-visible:bg-ax-card-hover"
                 onPointerEnter={() => setActive(item.id)}
                 onPointerLeave={() => setActive(null)}
                 onFocus={() => setActive(item.id)}

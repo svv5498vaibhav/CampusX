@@ -105,7 +105,7 @@ export function NotificationCenter() {
         {status === 'error' && items.length === 0 && <ErrorState title="We couldn't load your notifications" onRetry={() => fetchNotifications()} />}
         {status === 'ready' && items.length === 0 && <NotificationEmptyState filter={filter} />}
         {items.length > 0 && (
-          <ul className="flex flex-col gap-1 rounded-3xl border border-line bg-surface p-2" aria-label={filter === 'unread' ? 'Unread notifications' : 'All notifications'}>
+          <ul className="flex flex-col gap-1 glass-card rounded-3xl border border-line bg-surface p-2" aria-label={filter === 'unread' ? 'Unread notifications' : 'All notifications'}>
             <AnimatePresence initial={false}>
               {items.map((notification) => (
                 <NotificationItem key={notification.id} notification={notification} />

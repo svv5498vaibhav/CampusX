@@ -7,7 +7,7 @@ import { formatDateTime, formatRelativeTime } from '@/utils/time';
 /** The student's points history: "+20 Added a project", "−5 Shared a campus post (post deleted)". */
 export function PointActivity({ transactions }) {
   return (
-    <ul className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-surface" aria-label="Points history">
+    <ul className="flex flex-col divide-y divide-line glass-card rounded-3xl border border-line bg-surface" aria-label="Points history">
       {transactions.map((item) => {
         const positive = item.points > 0;
         const to = activityLink(item.link);

@@ -84,7 +84,7 @@ export default function MessagesPage() {
 
   return (
     <div className="gutter-x mx-auto flex h-[calc(100dvh-9rem-env(safe-area-inset-bottom))] w-full max-w-7xl py-3 md:h-dvh md:py-6">
-      <div className="flex min-h-0 w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+      <div className="flex min-h-0 w-full overflow-hidden glass-card rounded-3xl border border-line bg-surface shadow-soft">
         <aside className={cn('min-h-0 w-full flex-col border-line lg:flex lg:w-80 lg:shrink-0 lg:border-r xl:w-96', conversationId ? 'hidden' : 'flex')} aria-label="Inbox">
           <Inbox activeId={conversationId} />
         </aside>

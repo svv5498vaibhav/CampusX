@@ -13,22 +13,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Plus+Jakarta+Sans:wght@400..700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=JetBrains+Mono:wght@400..600&family=Plus+Jakarta+Sans:wght@400..700&family=Space+Grotesk:wght@500..700&display=swap"
     />
     <title>CampusX</title>
     <script>
-      // Apply the saved theme before first paint to avoid a light/dark flash.
-      // Must stay in sync with THEME_STORAGE_KEY and the persisted shape in src/store/themeStore.js.
+      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+      // Must stay in sync with THEME_STORAGE_KEY, the persisted shape in src/store/themeStore.js and the
+      // classes set by src/hooks/useThemeSync.js (admin pages apply their own theme once they open).
       (function () {
         try {
-          var saved = JSON.parse(localStorage.getItem('campusx-theme') || '{}');
-          var theme = (saved.state && saved.state.theme) || 'system';
+          var saved = (JSON.parse(localStorage.getItem('campusx-theme') || '{}').state) || {};
+          var theme = saved.theme || 'system';
           var dark =
             theme === 'dark' ||
             (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (dark) document.documentElement.classList.add('dark');
+          if (saved.style === 'aurora') document.documentElement.classList.add('theme-aurora');
         } catch (error) {
-          /* Storage unavailable: fall back to the light theme. */
+          /* Storage unavailable: fall back to the Campus Light theme. */
         }
       })();
     </script>

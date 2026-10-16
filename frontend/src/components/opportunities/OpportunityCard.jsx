@@ -38,7 +38,7 @@ export function OpportunityCard({ opportunity, headingLevel = 'h3', showReason =
     <motion.article
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft"
+      className="flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft"
       data-opportunity-id={opportunity.id}
       aria-labelledby={`opportunity-${opportunity.id}-title`}
     >

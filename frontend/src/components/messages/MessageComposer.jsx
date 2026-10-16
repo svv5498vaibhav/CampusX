@@ -85,7 +85,7 @@ export function MessageComposer({ onSend, disabled = false, placeholder = 'Write
         type="submit"
         disabled={!canSend}
         aria-label="Send message"
-        className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-fg shadow-soft transition-[background-color,box-shadow,transform,opacity] hover:bg-primary-hover hover:shadow-glow active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+        className="glass-primary grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-fg shadow-soft transition-[background-color,box-shadow,transform,opacity] hover:bg-primary-hover hover:shadow-glow active:scale-95 disabled:pointer-events-none disabled:opacity-40"
       >
         <SendHorizontal className="size-5" aria-hidden="true" />
       </button>

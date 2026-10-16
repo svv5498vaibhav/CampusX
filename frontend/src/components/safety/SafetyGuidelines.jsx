@@ -19,7 +19,7 @@ export function SafetyGuidelines({ headingLevel = 'h3' }) {
   return (
     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {GUIDELINES.map(({ icon: Icon, title, text }) => (
-        <li key={title} className="flex gap-3 rounded-3xl border border-line bg-surface p-4 shadow-soft">
+        <li key={title} className="flex gap-3 glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft">
           <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary-soft-fg" aria-hidden="true">
             <Icon className="size-5" />
           </span>

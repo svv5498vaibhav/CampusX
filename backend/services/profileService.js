@@ -6,6 +6,7 @@ import ApiError from '../utils/ApiError.js';
 import { calculateProfileCompletion } from '../utils/profileCompletion.js';
 import { CAMPUS_EVENTS, emitCampusEvent } from './campusEvents.js';
 import { getBranch, getCollege, getInterest, getOnboardingOptions, getSemester } from './campusOptionsService.js';
+import { eliteRankOf } from './eliteRankHolders.js';
 import { ROLL_NUMBER_TAKEN, assertIdentityUnlocked } from './onboardingService.js';
 
 const STUDENT_NOT_FOUND = "We couldn't find that student.";
@@ -27,11 +28,16 @@ async function describeCampus(user) {
   };
 }
 
-/** The short identity shown on posts and comments: name, photo and campus. Nothing private. */
+/**
+ * The short identity shown on posts and comments: name, photo and campus. Nothing private. `eliteRank` is the
+ * student's current Gold/Silver/Bronze token ({ tier, rank, title, token, since }) or null, always from the
+ * server's last ranking snapshot (services/eliteRankHolders.js): the frontend styles it, never decides it.
+ */
 export async function toStudentSummary(user) {
-  const [college, branch] = await Promise.all([
+  const [college, branch, eliteRank] = await Promise.all([
     user.college ? getCollege(user.college) : null,
     user.branch ? getBranch(user.branch) : null,
+    eliteRankOf(user._id),
   ]);
   const semester = user.semester ? getSemester(user.semester) : null;
 
@@ -43,6 +49,7 @@ export async function toStudentSummary(user) {
     college: college ? { id: college.id, name: college.name, shortName: college.aliases?.[0] ?? college.name } : null,
     branch: branch ? { id: branch.id, name: branch.name, shortName: branch.shortName ?? branch.name } : null,
     semester: semester ? { value: semester.value, label: semester.label } : null,
+    eliteRank,
   };
 }
 
@@ -84,6 +91,7 @@ export async function searchStudents(search, { excludeId, limit = 8 } = {}) {
 
 /** What any signed-in student may see. No email, roll number or account/security data. */
 async function toPublicProfile(user, viewerId) {
+  const eliteRank = await eliteRankOf(user._id);
   return {
     id: user._id.toString(),
     firstName: user.firstName,
@@ -95,6 +103,8 @@ async function toPublicProfile(user, viewerId) {
     coverImageUrl: user.coverImageUrl ?? null,
     theme: user.profileTheme ?? DEFAULT_PROFILE_THEME,
     memberSince: user.createdAt,
+    // Current Gold/Silver/Bronze token, from the server's ranking snapshot (null for everyone else).
+    eliteRank,
     isOwner: Boolean(viewerId) && user._id.toString() === String(viewerId),
   };
 }

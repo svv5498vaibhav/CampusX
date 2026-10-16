@@ -1,12 +1,13 @@
 import { LoaderCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
+// glass-primary / glass-danger: the Aurora Glass gradient and deeper red (no-ops in Campus themes).
 const VARIANTS = {
-  primary: 'bg-primary text-primary-fg shadow-soft hover:bg-primary-hover hover:shadow-glow',
+  primary: 'glass-primary bg-primary text-primary-fg shadow-soft hover:bg-primary-hover hover:shadow-glow',
   secondary: 'bg-primary-soft text-primary-soft-fg hover:bg-primary-soft/70',
   outline: 'border border-line-strong bg-surface text-ink hover:border-primary hover:text-primary',
   ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',
-  danger: 'bg-danger text-white shadow-soft hover:bg-danger/90',
+  danger: 'glass-danger bg-danger text-white shadow-soft hover:bg-danger/90',
 };
 
 const SIZES = {

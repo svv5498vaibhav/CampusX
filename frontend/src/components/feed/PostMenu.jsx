@@ -79,7 +79,7 @@ export function PostMenu({ items, label = 'Post options', triggerClassName }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -4 }}
             transition={{ duration: 0.14 }}
-            className="absolute top-full right-0 z-20 mt-1 w-48 origin-top-right rounded-2xl border border-line bg-surface p-1.5 shadow-lift"
+            className="glass-overlay absolute top-full right-0 z-20 mt-1 w-48 origin-top-right rounded-2xl border border-line bg-overlay p-1.5 shadow-lift"
           >
             {items.map(({ id, label: itemLabel, icon: Icon, onSelect, danger }) => (
               <button

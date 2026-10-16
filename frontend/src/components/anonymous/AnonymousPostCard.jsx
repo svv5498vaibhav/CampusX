@@ -98,7 +98,7 @@ export function AnonymousPostCard({ post, detail = false, onDeleted, headingLeve
   };
 
   return (
-    <article className="rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-anonymous-post-id={post.id} aria-labelledby={`anon-${post.id}-title`}>
+    <article className="glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5" data-anonymous-post-id={post.id} aria-labelledby={`anon-${post.id}-title`}>
       <header className="flex items-start justify-between gap-3">
         <AnonymousByline createdAt={post.createdAt} edited={post.edited} />
         <PostMenu items={menuItems} label={post.isOwner ? 'Your anonymous post options' : 'Post options'} />

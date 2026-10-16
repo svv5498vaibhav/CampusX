@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { FollowButton } from '@/components/social/FollowButton';
 import { Avatar, Badge, Button } from '@/components/ui';
 import { searchResultPath } from '@/constants/search';
@@ -11,7 +14,7 @@ import { getFullName } from '@/utils/string';
  * A student in search results: photo, name, college, branch • semester and top skills. Public profile
  * details only (never an email or roll number). Follow (shared follow state, asked for in one batch with
  * the other cards) and View Profile; never on your own card. Discover adds a recommendation `reason` and a
- * `menu` (both optional).
+ * `menu` (both optional). Gold, Silver and Bronze token holders show their frame, metal name and token.
  */
 export function StudentSearchCard({ student, headingLevel = 'h3', reason, menu }) {
   const Heading = headingLevel;
@@ -26,16 +29,19 @@ export function StudentSearchCard({ student, headingLevel = 'h3', reason, menu }
   }, [canFollow, student.id]);
 
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="student" data-student-id={student.id}>
+    <article className="flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="student" data-student-id={student.id}>
       <div className="flex items-start gap-3">
         <Link to={path} tabIndex={-1} aria-hidden="true" className="shrink-0 rounded-full">
-          <Avatar src={student.avatarUrl} name={name} size="lg" shape="circle" />
+          <EliteProfileFrame eliteRank={student.eliteRank} size="lg" shape="circle">
+            <Avatar src={student.avatarUrl} name={name} size="lg" shape="circle" />
+          </EliteProfileFrame>
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <Heading className="truncate font-display text-base leading-snug font-bold text-ink">
-              <Link to={path} className="hover:underline">{name}</Link>
+              <Link to={path} className="hover:underline"><EliteRankName eliteRank={student.eliteRank}>{name}</EliteRankName></Link>
             </Heading>
+            <RankTokenBadge eliteRank={student.eliteRank} variant="compact" />
             {student.isYou && <Badge variant="primary" className="px-2 py-0.5 text-[11px]">You</Badge>}
           </div>
           {student.college && <p className="truncate text-sm text-ink-muted" title={student.college.name}>{student.college.name}</p>}

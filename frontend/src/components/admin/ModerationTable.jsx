@@ -40,7 +40,7 @@ export function ModerationTable({ cases }) {
       <div className="relative hidden overflow-x-auto md:block">
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead>
-            <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">
+            <tr className="admin-label border-b border-ax-border text-ax-subtle">
               <th scope="col" className="py-2.5 pr-3 font-semibold">Case</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">Content</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">Author</th>
@@ -58,7 +58,7 @@ export function ModerationTable({ cases }) {
                   <Link to={casePath(item.id)} className="font-mono text-xs font-semibold text-ax-neon outline-none after:absolute after:inset-0 hover:underline focus-visible:underline">
                     {shortId(item.id)}
                   </Link>
-                  <span className="mt-1 block font-mono text-[10px] text-ax-subtle uppercase">{item.sources.join(' + ')}</span>
+                  <span className="admin-label mt-1 block text-[10px] text-ax-subtle">{item.sources.join(' + ')}</span>
                 </td>
                 <td className="max-w-[22rem] py-3 pr-3 align-top">
                   <TargetSummary target={item.target} targetType={item.targetType} />

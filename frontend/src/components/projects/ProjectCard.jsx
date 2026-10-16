@@ -36,7 +36,7 @@ export function ProjectCard({ project, headingLevel = 'h3', compact = false }) {
     <motion.article
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft"
+      className="flex h-full flex-col overflow-hidden glass-card rounded-3xl border border-line bg-surface shadow-soft"
       data-project-id={project.id}
     >
       <Link to={projectPath(project.id)} tabIndex={-1} aria-hidden="true" className={cn('relative block overflow-hidden bg-primary-soft', compact ? 'aspect-[16/8]' : 'aspect-video')}>
@@ -48,7 +48,7 @@ export function ProjectCard({ project, headingLevel = 'h3', compact = false }) {
           </div>
         )}
         {project.featured && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-lg bg-surface/90 px-2 py-1 text-[11px] font-bold text-accent-fg backdrop-blur-sm">
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-lg bg-overlay/90 px-2 py-1 text-[11px] font-bold text-accent-fg backdrop-blur-sm">
             <Star className="size-3 fill-current" /> Featured
           </span>
         )}

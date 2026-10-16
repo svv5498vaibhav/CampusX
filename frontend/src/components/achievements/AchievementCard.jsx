@@ -27,7 +27,7 @@ export function AchievementCard({ achievement, headingLevel = 'h3', showOwner = 
     <motion.article
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft"
+      className="flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft"
       data-achievement-id={achievement.id}
     >
       <div className="flex items-start gap-3">

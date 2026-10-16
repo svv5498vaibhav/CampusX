@@ -10,7 +10,7 @@ const SIZES = {
 };
 
 const TONES = {
-  follow: 'border-transparent bg-primary text-primary-fg shadow-soft hover:bg-primary-hover hover:shadow-glow',
+  follow: 'glass-primary border-transparent bg-primary text-primary-fg shadow-soft hover:bg-primary-hover hover:shadow-glow',
   following: 'border-line-strong bg-surface text-ink',
   unfollow: 'border-danger/50 bg-danger-soft text-danger-fg',
 };

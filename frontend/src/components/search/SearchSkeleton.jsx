@@ -4,7 +4,7 @@ const bar = 'rounded bg-surface-muted';
 
 function CardSkeleton() {
   return (
-    <div className="flex h-full animate-pulse flex-col gap-3 rounded-3xl border border-line bg-surface p-4">
+    <div className="flex h-full animate-pulse flex-col gap-3 glass-card rounded-3xl border border-line bg-surface p-4">
       <div className="flex items-start gap-3">
         <span className="size-12 shrink-0 rounded-2xl bg-surface-muted" />
         <span className="flex flex-1 flex-col gap-2 pt-1">
@@ -21,7 +21,7 @@ function CardSkeleton() {
 
 function PostSkeleton() {
   return (
-    <div className="flex animate-pulse flex-col gap-3 rounded-3xl border border-line bg-surface p-5">
+    <div className="flex animate-pulse flex-col gap-3 glass-card rounded-3xl border border-line bg-surface p-5">
       <div className="flex items-center gap-3">
         <span className="size-10 rounded-xl bg-surface-muted" />
         <span className="flex flex-1 flex-col gap-2">

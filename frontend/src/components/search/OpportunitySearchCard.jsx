@@ -22,7 +22,7 @@ export function OpportunitySearchCard({ opportunity, headingLevel = 'h3', reason
 
   return (
     <article
-      className={cn('flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift', closed && 'bg-surface-muted/40')}
+      className={cn('flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift', closed && 'bg-surface-muted/40')}
       data-search-result="opportunity"
       data-opportunity-id={opportunity.id}
     >

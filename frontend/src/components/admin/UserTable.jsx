@@ -39,7 +39,7 @@ export function UserTable({ users }) {
       <div className="relative hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead>
-            <tr className="border-b border-ax-border font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">
+            <tr className="admin-label border-b border-ax-border text-ax-subtle">
               <th scope="col" className="py-2.5 pr-3 font-semibold">Student</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">College</th>
               <th scope="col" className="py-2.5 pr-3 font-semibold">Branch</th>
@@ -60,7 +60,7 @@ export function UserTable({ users }) {
                   <span className="block truncate" title={user.college?.name}>{user.college?.shortName ?? '—'}</span>
                 </td>
                 <td className="py-3 pr-3 text-ax-muted">{user.branch?.shortName ?? '—'}</td>
-                <td className="py-3 pr-3 font-mono text-ax-muted">{user.semester ?? '—'}</td>
+                <td className="py-3 pr-3 text-ax-muted tabular-nums">{user.semester ?? '—'}</td>
                 <td className="py-3 pr-3">
                   <Tag tone={roleTone(user.role)}>{user.role}</Tag>
                 </td>

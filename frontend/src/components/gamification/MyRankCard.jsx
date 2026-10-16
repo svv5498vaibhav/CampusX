@@ -1,15 +1,20 @@
 import { TrendingUp } from 'lucide-react';
+import { Link } from 'react-router';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { LevelProgress } from '@/components/gamification/LevelProgress';
 import { RankStatCard } from '@/components/gamification/RankStatCard';
 import { Card, Loader } from '@/components/ui';
 import { formatPoints } from '@/constants/gamification';
+import { ROUTES } from '@/constants/routes';
+import { useEliteStore } from '@/store/eliteStore';
 import { cn } from '@/utils/cn';
 
 /**
  * "Your Campus Position": overall rank, XP, level progress and the college / branch / semester ranks,
- * all from GET /rankings/me.
+ * all from GET /rankings/me, plus the elite rank token the student holds (GET /rankings/elite).
  */
 export function MyRankCard({ myRanks, status, className }) {
+  const eliteRank = useEliteStore((state) => state.overview?.you ?? null);
   if (!myRanks) {
     return (
       <Card className={className} padding="md">
@@ -25,6 +30,11 @@ export function MyRankCard({ myRanks, status, className }) {
           <h2 id="my-rank-title" className="text-sm font-semibold text-ink-muted">Your Campus Position</h2>
           <p className="mt-1 font-display text-4xl font-bold text-ink">{overall ? `#${overall}` : '—'}</p>
           {!overall && <p className="text-xs text-ink-muted">Earn your first XP to join the leaderboard.</p>}
+          {eliteRank && (
+            <Link to={ROUTES.HALL_OF_FAME} className="mt-1 inline-flex rounded-full" aria-label={`${eliteRank.title}: open the Hall of Fame`}>
+              <RankTokenBadge eliteRank={eliteRank} variant="full" />
+            </Link>
+          )}
         </div>
         <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary-soft-fg" aria-hidden="true">
           <TrendingUp className="size-5" />

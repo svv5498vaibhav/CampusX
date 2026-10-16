@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Ban,
@@ -26,22 +26,22 @@ import {
 import { getInitials } from '@/utils/string';
 import { formatDateTime, formatRelativeTime } from '@/utils/time';
 import { cn } from '@/utils/cn';
+import { fadeUp, statusChange } from '@/utils/motion';
 
 /*
- * Small building blocks for the admin control center: panels with terminal-style labels, status pills
- * (always icon + text, never colour alone), filter controls, pagination and page states. They use the
- * admin tokens (ax-*) from styles/index.css.
+ * Small building blocks for the Aurora Glass control center: glass panels with section labels, status
+ * pills (always icon + text, never colour alone), filter controls, pagination and page states. They use
+ * the admin tokens (ax-*) from styles/index.css. Typography: display face for headings, the body face for
+ * labels and data, monospace only for IDs, times and metrics.
  */
 
 // ----------------------------------------------------------------------------- panels and headings
 
-/** "// THREAT MONITOR" style label. */
+/** Small-caps section label with an accent tick ("THREAT MONITOR"). */
 export function TerminalLabel({ children, className, as: Component = 'p' }) {
   return (
-    <Component className={cn('font-mono text-[11px] font-semibold tracking-[0.18em] text-ax-muted uppercase', className)}>
-      <span className="text-ax-neon" aria-hidden="true">
-        //{' '}
-      </span>
+    <Component className={cn('admin-label flex items-center gap-2 text-ax-muted', className)}>
+      <span aria-hidden="true" className="h-3 w-[3px] shrink-0 rounded-full bg-gradient-to-b from-ax-violet to-ax-neon" />
       {children}
     </Component>
   );
@@ -81,12 +81,13 @@ export function AdminPageHeader({ eyebrow, title, description, actions, children
 // ----------------------------------------------------------------------------- buttons
 
 const BUTTON_TONES = {
-  primary: 'border-ax-violet/70 bg-ax-violet text-white hover:bg-ax-neon hover:admin-glow',
-  ghost: 'border-ax-border bg-ax-card/60 text-ax-text hover:border-ax-violet/60 hover:bg-ax-card-hover',
+  // The violet → electric-blue gradient; white text stays readable on both ends in both variants.
+  primary: 'border-transparent bg-ax-violet bg-[image:var(--ag-gradient)] text-ax-on-accent shadow-[var(--ag-shadow-button)] hover:brightness-110 hover:admin-glow',
+  ghost: 'border-ax-border bg-ax-card text-ax-text hover:border-ax-border-strong hover:bg-ax-card-hover',
   danger: 'border-ax-danger/50 bg-ax-danger/10 text-ax-danger hover:bg-ax-danger/20',
   success: 'border-ax-success/40 bg-ax-success/10 text-ax-success hover:bg-ax-success/20',
   warning: 'border-ax-warning/40 bg-ax-warning/10 text-ax-warning hover:bg-ax-warning/20',
-  violet: 'border-ax-neon/50 bg-ax-neon/10 text-[#d8ccff] hover:bg-ax-neon/20',
+  violet: 'border-ax-violet/45 bg-ax-violet/10 text-ax-accent-fg hover:bg-ax-violet/20',
   neutral: 'border-ax-border bg-transparent text-ax-muted hover:text-ax-text hover:bg-ax-card-hover',
 };
 
@@ -98,7 +99,7 @@ export function AdminButton({ as: Component = 'button', tone = 'ghost', size = '
       disabled={native ? disabled || loading : undefined}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow] duration-150',
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,filter] duration-150',
         'disabled:pointer-events-none disabled:opacity-45',
         size === 'sm' ? 'h-8 px-2.5 text-xs' : 'h-10 px-3.5 text-sm',
         BUTTON_TONES[tone],
@@ -119,7 +120,7 @@ const TONES = {
   warning: 'border-ax-warning/35 bg-ax-warning/10 text-ax-warning',
   serious: 'border-ax-serious/35 bg-ax-serious/10 text-ax-serious',
   danger: 'border-ax-danger/40 bg-ax-danger/10 text-ax-danger',
-  violet: 'border-ax-violet/45 bg-ax-violet/12 text-[#d8ccff]',
+  violet: 'border-ax-violet/45 bg-ax-violet/12 text-ax-accent-fg',
   neutral: 'border-ax-border bg-ax-bg-2 text-ax-subtle',
 };
 
@@ -163,18 +164,30 @@ PILL_SPECS.priority = PILL_SPECS.risk;
 
 const PILL_LABELS = { case: CASE_STATUS_LABELS, report: REPORT_STATUS_LABELS, content: CONTENT_STATUS_LABELS, account: ACCOUNT_STATUS_LABELS };
 
-/** A status with its icon and words: kind is risk · priority · case · report · content · account. */
+/**
+ * A status with its icon and words: kind is risk · priority · case · report · content · account. When the
+ * value changes in place (an action was just applied) the pill settles in once; first renders don't move.
+ */
 export function StatusPill({ kind, value, prefix, className }) {
+  const shown = useRef(value);
+  const changed = shown.current !== value;
+  useEffect(() => {
+    shown.current = value;
+  }, [value]);
   if (!value) return null;
   const spec = PILL_SPECS[kind]?.[value] ?? { tone: 'neutral' };
   const Icon = spec.icon;
   const label = spec.label ?? PILL_LABELS[kind]?.[value] ?? value;
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap', TONES[spec.tone], className)}>
+    <motion.span
+      key={value}
+      {...(changed ? statusChange : { initial: false })}
+      className={cn('inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap', TONES[spec.tone], className)}
+    >
       {Icon && <Icon className="size-3" aria-hidden="true" />}
-      {prefix && <span className="font-normal opacity-80">{prefix}</span>}
+      {prefix && <span className="font-normal">{prefix}</span>}
       {label}
-    </span>
+    </motion.span>
   );
 }
 
@@ -198,11 +211,11 @@ export function AdminTabs({ tabs, value, onChange, label, className }) {
             onClick={() => onChange(tab.id)}
             className={cn(
               'relative inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors',
-              active ? 'border-ax-violet/70 bg-ax-violet/15 text-ax-text' : 'border-ax-border bg-ax-card/50 text-ax-muted hover:border-ax-border-strong hover:text-ax-text',
+              active ? 'border-ax-violet/60 bg-ax-violet/15 text-ax-text' : 'border-ax-border bg-ax-card text-ax-muted hover:border-ax-border-strong hover:text-ax-text',
             )}
           >
             {tab.label}
-            {typeof tab.count === 'number' && <span className={cn('rounded px-1.5 py-px font-mono text-[11px]', active ? 'bg-ax-violet/30 text-white' : 'bg-ax-bg-2 text-ax-subtle')}>{tab.count.toLocaleString()}</span>}
+            {typeof tab.count === 'number' && <span className={cn('rounded px-1.5 py-px font-mono text-[11px] tabular-nums', active ? 'bg-ax-violet/25 text-ax-text' : 'bg-ax-bg-2 text-ax-subtle')}>{tab.count.toLocaleString()}</span>}
           </button>
         );
       })}
@@ -214,12 +227,12 @@ export function AdminTabs({ tabs, value, onChange, label, className }) {
 export function FilterSelect({ label, value, onChange, options, className }) {
   return (
     <label className={cn('relative flex min-w-0 flex-col gap-1', className)}>
-      <span className="font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">{label}</span>
+      <span className="admin-label text-ax-subtle">{label}</span>
       <span className="relative">
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="h-9 w-full appearance-none rounded-lg border border-ax-border bg-ax-bg-2 pr-8 pl-3 text-sm text-ax-text outline-none hover:border-ax-border-strong focus:border-ax-violet"
+          className="h-9 w-full appearance-none rounded-lg border border-ax-border bg-ax-bg-2 pr-8 pl-3 text-sm text-ax-text outline-none transition-[border-color,box-shadow] hover:border-ax-border-strong focus:border-ax-violet focus:ring-2 focus:ring-ax-violet/25"
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -236,12 +249,12 @@ export function FilterSelect({ label, value, onChange, options, className }) {
 export function FilterDate({ label, value, onChange, className }) {
   return (
     <label className={cn('flex min-w-0 flex-col gap-1', className)}>
-      <span className="font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">{label}</span>
+      <span className="admin-label text-ax-subtle">{label}</span>
       <input
         type="date"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 rounded-lg border border-ax-border bg-ax-bg-2 px-2.5 text-sm text-ax-text outline-none [color-scheme:dark] hover:border-ax-border-strong focus:border-ax-violet"
+        className="h-9 rounded-lg border border-ax-border bg-ax-bg-2 px-2.5 text-sm text-ax-text outline-none transition-[border-color,box-shadow] hover:border-ax-border-strong focus:border-ax-violet focus:ring-2 focus:ring-ax-violet/25"
       />
     </label>
   );
@@ -267,7 +280,7 @@ export function SearchField({ value, onSearch, placeholder = 'Search', label = '
       }}
     >
       <label className="flex flex-col gap-1">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">{label}</span>
+        <span className="admin-label text-ax-subtle">{label}</span>
         <span className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ax-subtle" aria-hidden="true" />
           <input
@@ -276,7 +289,7 @@ export function SearchField({ value, onSearch, placeholder = 'Search', label = '
             maxLength={80}
             onChange={(event) => setText(event.target.value)}
             placeholder={placeholder}
-            className="h-9 w-full rounded-lg border border-ax-border bg-ax-bg-2 pr-8 pl-9 text-sm text-ax-text outline-none placeholder:text-ax-subtle hover:border-ax-border-strong focus:border-ax-violet [&::-webkit-search-cancel-button]:hidden"
+            className="h-9 w-full rounded-lg border border-ax-border bg-ax-bg-2 pr-8 pl-9 text-sm text-ax-text outline-none placeholder:text-ax-subtle transition-[border-color,box-shadow] hover:border-ax-border-strong focus:border-ax-violet focus:ring-2 focus:ring-ax-violet/25 [&::-webkit-search-cancel-button]:hidden"
           />
           {text && (
             <button type="button" onClick={() => { setText(''); onSearch(''); }} className="absolute top-1/2 right-2 grid size-6 -translate-y-1/2 place-items-center rounded text-ax-subtle hover:text-ax-text" aria-label="Clear search">
@@ -303,14 +316,14 @@ export function AdminPagination({ pagination, onPage, className }) {
   const last = Math.min(total, page * limit);
   return (
     <nav aria-label="Pages" className={cn('flex flex-wrap items-center justify-between gap-3 pt-4 text-sm text-ax-muted', className)}>
-      <p className="font-mono text-xs">
+      <p className="font-mono text-xs tabular-nums">
         {first.toLocaleString()}–{last.toLocaleString()} of {total.toLocaleString()}
       </p>
       <div className="flex items-center gap-2">
         <AdminButton size="sm" icon={ChevronLeft} disabled={page <= 1} onClick={() => onPage(page - 1)}>
           Previous
         </AdminButton>
-        <span className="font-mono text-xs">
+        <span className="font-mono text-xs tabular-nums">
           {page} / {pages}
         </span>
         <AdminButton size="sm" disabled={!pagination.hasMore} onClick={() => onPage(page + 1)}>
@@ -321,14 +334,16 @@ export function AdminPagination({ pagination, onPage, className }) {
   );
 }
 
+/** Skeleton lines with a localized shimmer, and the words for what is loading. */
 export function AdminLoading({ label = 'Loading', className }) {
   return (
-    <div role="status" className={cn('flex min-h-40 flex-col items-center justify-center gap-3 text-ax-muted', className)}>
-      <span className="relative flex size-8 items-center justify-center">
-        <span className="absolute inset-0 animate-ping rounded-full bg-ax-violet/25 motion-reduce:animate-none" />
-        <span className="size-3 rounded-full bg-ax-neon" />
+    <div role="status" className={cn('flex min-h-40 flex-col justify-center gap-4 py-4', className)}>
+      <span aria-hidden="true" className="mx-auto flex w-full max-w-xl flex-col gap-2.5">
+        {['w-2/5', 'w-full', 'w-11/12', 'w-3/4'].map((width) => (
+          <span key={width} className={cn('shimmer h-3 rounded-full border border-ax-border bg-ax-card [--cx-shimmer:var(--ag-reflection)]', width)} />
+        ))}
       </span>
-      <span className="font-mono text-xs tracking-[0.16em] uppercase">{label}…</span>
+      <span className="admin-label text-center text-ax-muted">{label}…</span>
     </div>
   );
 }
@@ -384,7 +399,7 @@ export function AdminAvatar({ src, name = '', size = 'sm', className }) {
   const classes = cn('shrink-0 overflow-hidden border border-ax-border', AVATAR_SIZES[size], className);
   if (src && !failed) return <img src={src} alt="" className={cn(classes, 'object-cover')} onError={() => setFailed(true)} />;
   return (
-    <span aria-hidden="true" className={cn(classes, 'grid place-items-center bg-ax-deep/30 font-semibold text-[#d8ccff]')}>
+    <span aria-hidden="true" className={cn(classes, 'grid place-items-center bg-ax-violet/15 font-semibold text-ax-accent-fg')}>
       {getInitials(name) || '?'}
     </span>
   );
@@ -411,7 +426,7 @@ export function KeyValues({ items, columns = 2, className }) {
         .filter((item) => item && item.value !== undefined)
         .map((item) => (
           <div key={item.label} className="min-w-0">
-            <dt className="font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">{item.label}</dt>
+            <dt className="admin-label text-ax-subtle">{item.label}</dt>
             <dd className="mt-0.5 text-sm break-words text-ax-text">{item.value ?? '—'}</dd>
           </div>
         ))}
@@ -423,7 +438,7 @@ export function KeyValues({ items, columns = 2, className }) {
 export function Reveal({ children, delay = 0, className, as = 'div' }) {
   const Component = motion[as];
   return (
-    <Component className={className} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay, ease: [0.22, 1, 0.36, 1] }}>
+    <Component className={className} {...fadeUp(delay)}>
       {children}
     </Component>
   );

@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { Palette, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, NavLink } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
@@ -11,6 +11,9 @@ import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { CAMPUS_NAV } from '@/constants/navigation';
 import { ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
+import { SPRING } from '@/utils/motion';
+
+const FOOTER_LINK = 'inline-flex h-10 w-full items-center justify-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors lg:justify-start lg:px-4';
 
 function SidebarLink({ item }) {
   const { icon: Icon, label, to } = item;
@@ -32,7 +35,7 @@ function SidebarLink({ item }) {
             <motion.span
               layoutId="sidebar-active"
               className="absolute inset-0 -z-10 rounded-2xl bg-primary-soft"
-              transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+              transition={SPRING.selection}
             />
           )}
           <Icon className="size-5 shrink-0" aria-hidden="true" />
@@ -81,12 +84,23 @@ export function CampusSidebar() {
         <NavLink
           to={ROUTES.SAFETY}
           title="Community guidelines"
-          className={({ isActive }) => cn('inline-flex h-10 w-full items-center justify-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors lg:justify-start lg:px-4', isActive ? 'bg-primary-soft text-primary-soft-fg' : 'text-ink-muted hover:bg-surface-muted hover:text-ink')}
+          className={({ isActive }) => cn(FOOTER_LINK, isActive ? 'bg-primary-soft text-primary-soft-fg' : 'text-ink-muted hover:bg-surface-muted hover:text-ink')}
         >
           <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
           <span className="sr-only lg:not-sr-only">Community guidelines</span>
         </NavLink>
-        <ThemeToggle showLabel />
+        {/* Quick light/dark switch beside the way into Theme Studio (one row on laptops, stacked on the rail). */}
+        <div className="flex flex-col gap-2 lg:flex-row">
+          <ThemeToggle showLabel className="lg:min-w-0 lg:flex-1" />
+          <NavLink
+            to={ROUTES.THEME_STUDIO}
+            title="Theme Studio"
+            aria-label="Theme Studio"
+            className={({ isActive }) => cn('inline-flex h-10 w-full shrink-0 items-center justify-center rounded-xl transition-colors lg:w-10', isActive ? 'bg-primary-soft text-primary-soft-fg' : 'text-ink-muted hover:bg-surface-muted hover:text-ink')}
+          >
+            <Palette className="size-4" aria-hidden="true" />
+          </NavLink>
+        </div>
         <SidebarAccount />
       </div>
     </aside>

@@ -77,7 +77,7 @@ export function ConfirmActionModal({
       }
     >
       <form id={`${reasonId}-form`} onSubmit={submit} className="space-y-4">
-        <div className={cn('flex gap-3 rounded-xl border p-3 text-sm', danger ? 'border-ax-danger/35 bg-ax-danger/8 text-[#fecaca]' : 'border-ax-border bg-ax-bg-2 text-ax-muted')}>
+        <div className={cn('flex gap-3 rounded-xl border p-3 text-sm', danger ? 'border-ax-danger/35 bg-ax-danger/8 text-ax-danger-fg' : 'border-ax-border bg-ax-bg-2 text-ax-muted')}>
           <Icon className={cn('mt-0.5 size-4 shrink-0', danger ? 'text-ax-danger' : 'text-ax-neon')} aria-hidden="true" />
           <p>{description}</p>
         </div>
@@ -101,14 +101,14 @@ export function ConfirmActionModal({
             />
             <p id={`${reasonId}-hint`} className="mt-1 flex justify-between text-[11px] text-ax-subtle">
               <span>{requireReason ? `At least ${minReason} characters.` : 'Visible to staff only.'}</span>
-              <span className="font-mono">
+              <span className="font-mono tabular-nums">
                 {reason.length}/{maxReason}
               </span>
             </p>
           </div>
         )}
         {error && (
-          <p role="alert" className="rounded-lg border border-ax-danger/40 bg-ax-danger/10 px-3 py-2 text-sm text-[#fecaca]">
+          <p role="alert" className="rounded-lg border border-ax-danger/40 bg-ax-danger/10 px-3 py-2 text-sm text-ax-danger-fg">
             {error}
           </p>
         )}

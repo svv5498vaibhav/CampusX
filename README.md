@@ -43,7 +43,14 @@ Mobile), adapted to their branch track, with objectives, suggested projects and 
 mark milestones in progress or complete; progress, semester completion and the next suggested milestone are
 calculated by the server from their saved records, survive refresh and sign-in, and changing goal never deletes
 progress. Completing a whole semester earns XP once per semester. These are suggestions by CampusX, not an
-official syllabus. Students can **follow** each other (Follow / Following on profiles, student cards and lists,
+official syllabus. The **Resume Builder** (a card on the student's own profile and a link in the phone account
+sheet, pages `/resume-builder` and `/resume-builder/:resumeId`) builds resumes from the student's CampusX profile:
+import name, college, branch, skills, projects, achievements, certifications and completed roadmap learning
+(only their own records; nothing invented), edit everything in a ten-step guided editor with a live A4 preview
+and autosave, pick one of six Fresher & Internship templates or four general ones, run an explained resume
+check (with optional job-description keywords), and download a real, text-based A4 PDF that matches the preview.
+Students keep up to 20 private resumes (duplicate, rename, default, delete). An optional AI assistant (Google Gemini,
+server side, `GEMINI_API_KEY`) suggests summaries, bullet points and keywords for the student to review. Students can **follow** each other (Follow / Following on profiles, student cards and lists,
 with a short celebratory animation, follower and following counts that open paginated, searchable lists, and a
 "started following you" notification) and send **direct messages** (a Message button on every profile opens the
 one conversation two students share; `/messages` has the inbox, live delivery, unread counts and "Seen"). A
@@ -134,6 +141,9 @@ CampusX/
 │       │   │                    RoadmapProgressRing, NextTaskCard, SemesterTimeline (journey + semester tabs),
 │       │   │                    SemesterPanel (transitions), SemesterOverviewCard, MilestoneCard,
 │       │   │                    RoadmapResourceList, SemesterCompletionCelebration, SkillMastery, CareerGoalPicker
+│       │   ├── resume/          Resume Builder: ResumeProfileCard (profile entry), StepNav, ResumePreview + ResumePage
+│       │   │                    (SVG pages), ResumePrint, ResumeFields (month/year, bullets, item lists), AiAssist,
+│       │   │                    ResumeDialogs, steps/ (one component per wizard step)
 │       │   ├── admin/           Control center: AdminSidebar, AdminHeader, SystemStatus, AdminStatCard, AdminChart
 │       │   │                    (line, bars, donut), RiskRadar, ModerationTable, ReportTable, UserTable, ContentTable,
 │       │   │                    CaseDetail, ConfirmActionModal, AdminUi (panels, pills, filters, pagination), AdminNotFound
@@ -148,6 +158,7 @@ CampusX/
 │       │                        CommunityDetailsPage, projects/, achievements/, opportunities/, anonymous/,
 │       │                        rankings/, gamification/, notifications/, search/, SafetyPage, DiscoverPage,
 │       │                        roadmap/ (SemesterRoadmapPage at /profile/roadmap),
+│       │                        resume/ (ResumeBuilderPage at /resume-builder, ResumeEditorPage),
 │       │                        admin/ (AdminDashboard, AdminModeration, AdminReports, AdminUsers, AdminUserDetail,
 │       │                        AdminContent, AdminCommunities, AdminOpportunities, AdminAnalytics, AdminAuditLogs,
 │       │                        opportunities/OpportunityEditor),
@@ -195,7 +206,9 @@ CampusX/
 │   │                            searchOptions.js (search types, sorts, limits, relevance and text-index weights,
 │   │                            stop words, rate limits),
 │   │                            roadmapOptions.js (Semester Roadmap: career goals, branch tracks, semester focus,
-│   │                            every milestone with checked resource links, rate limits, start-up self-check)
+│   │                            every milestone with checked resource links, rate limits, start-up self-check),
+│   │                            resumeOptions.js (Resume Builder: templates, target roles, sections, accents,
+│   │                            limits, rate limits, skill groups and keyword lists for the import and checker)
 │   ├── controllers/             healthController, authController, onboardingController, profileController,
 │   │                            postController, commentController, communityController, projectController,
 │   │                            achievementController, opportunityController, anonymousController,
@@ -214,7 +227,7 @@ CampusX/
 │   │                            PointTransaction, Notification, NotificationPreference, SearchHistory,
 │   │                            Report, ModerationCase, ModerationAuditLog (+ moderationFields, shared),
 │   │                            RecommendationProfile, RecommendationFeedback, RecommendationInteraction,
-│   │                            StudentRoadmapProgress
+│   │                            StudentRoadmapProgress, Resume
 │   ├── routes/                  index.js (/api/v1) + healthRoutes, authRoutes, onboardingRoutes, profileRoutes,
 │   │                            postRoutes, commentRoutes, communityRoutes, projectRoutes, achievementRoutes,
 │   │                            opportunityRoutes, anonymousRoutes, rankingRoutes, gamificationRoutes,
@@ -244,6 +257,8 @@ CampusX/
 │   │                            (derived profile), recommendationEvents (campus events → profile),
 │   │                            securityService (security events, request screening, sign-in rules, abuse),
 │   │                            roadmapService (Semester Roadmap: resolve goal + track, progress maths, changes),
+│   │                            resumeService, resumeContent, resumeImportService, resumeAnalysisService,
+│   │                            resumeAiService + aiProvider (Resume Builder and its optional AI assistant),
 │   │                            admin/ (dashboardService, moderationService, reportService, userManagementService,
 │   │                            contentManagementService, analyticsService, auditService, securityStatusService,
 │   │                            adminAccess, adminTargets, adminSeries, adminCache, adminRealtime)
@@ -371,6 +386,10 @@ In development, http://localhost:5173/dev/status shows whether the frontend can 
 | `CLOUDINARY_API_KEY` | for uploads | Cloudinary API key. It must be allowed to upload and delete assets: a key without those permissions starts fine, but every upload fails with "upload failed" and the server log says HTTP 403 |
 | `CLOUDINARY_API_SECRET` | for uploads | Cloudinary API secret |
 | `TRUST_PROXY` | no | Number of reverse proxies in front of the API (e.g. `1` on Render/Railway) |
+| `GEMINI_API_KEY` | no | Turns on the Resume Builder's optional AI assistant, powered by Google Gemini (create a key at https://aistudio.google.com/apikey). Server side only: never sent to the browser or logged. Without it the Resume Builder works fully and the "Improve with AI" buttons explain that the assistant isn't set up. On the free tier, students see "try again in a minute / tomorrow" when the quota runs out |
+| `RESUME_AI_MODEL` | no | Gemini model for the assistant, default `gemini-3.5-flash-lite` |
+| `RESUME_AI_ENABLED` | no | `false` switches the assistant off even when a key is present |
+| `GEMINI_BASE_URL` | no | Only for a proxy in front of the Gemini API; leave empty |
 
 In production the server refuses to start if `MONGODB_URI`, `JWT_SECRET` or `CLIENT_URL` is missing, if
 `JWT_SECRET` is shorter than 32 characters or still an example value, if `CLIENT_URL` contains `*`, a path or a

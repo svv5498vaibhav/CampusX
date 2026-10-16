@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Camera, ImagePlus, School } from 'lucide-react';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { Avatar } from '@/components/ui';
 import { cn } from '@/utils/cn';
 
@@ -44,6 +47,8 @@ const memberSince = (date) =>
  * and in the narrow editor preview. `stats` (follower counts) sits under the campus line; `celebrateAt` is
  * when the viewer just followed this student (the photo's ring glows once); `menu` is a ⋮ menu placed after
  * the actions when they share a row, and in the header's top-right corner when they stack.
+ * A Gold, Silver or Bronze token holder (profile.eliteRank, from the server) gets the metallic photo frame
+ * (in place of the theme's ring, never over the face), the shining metal name and the token under it.
  */
 export function ProfileHeader({ profile, theme, isOwner, onChangePhoto, onChangeCover, actions, menu, stats, celebrateAt, headingAs: Heading = 'h1' }) {
   const [failedCover, setFailedCover] = useState(null);
@@ -83,9 +88,11 @@ export function ProfileHeader({ profile, theme, isOwner, onChangePhoto, onChange
         <div className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
           <div className="flex flex-col items-start gap-3 @2xl:flex-row @2xl:items-end @2xl:gap-5">
             <div className="relative -mt-14 @xl:-mt-16">
-              <span className={cn('block rounded-full p-1 transition-colors duration-300', theme.ring)}>
-                <Avatar src={profile.avatarUrl} name={fullName} size="2xl" shape="circle" className="ring-4 ring-surface" />
-              </span>
+              <EliteProfileFrame eliteRank={profile.eliteRank} size="2xl" shape="circle" placement="inside" glow>
+                <span className={cn('block rounded-full p-1 transition-colors duration-300', theme.ring)}>
+                  <Avatar src={profile.avatarUrl} name={fullName} size="2xl" shape="circle" className="ring-4 ring-surface" />
+                </span>
+              </EliteProfileFrame>
               <FollowGlow at={celebrateAt} />
               {isOwner && onChangePhoto && (
                 <button
@@ -100,7 +107,14 @@ export function ProfileHeader({ profile, theme, isOwner, onChangePhoto, onChange
             </div>
             {/* Top padding keeps the name clear of the cover edge when it sits beside the photo. */}
             <div className="min-w-0 @2xl:pt-5 @2xl:pb-1">
-              <Heading className="font-display text-2xl font-bold tracking-tight break-words text-ink @xl:text-3xl">{fullName}</Heading>
+              {/* The token sits beside the name (below it only when a long name needs the room), so a header that
+                  gains or loses one doesn't grow and push the photo. */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <Heading className="min-w-0 font-display text-2xl font-bold tracking-tight break-words text-ink @xl:text-3xl">
+                  <EliteRankName eliteRank={profile.eliteRank} shine>{fullName}</EliteRankName>
+                </Heading>
+                <RankTokenBadge eliteRank={profile.eliteRank} variant="full" />
+              </div>
               {(profile.branch || profile.semester) && (
                 <p className={cn('mt-1 text-sm font-semibold transition-colors duration-300', theme.accent)}>
                   {profile.branch?.name}

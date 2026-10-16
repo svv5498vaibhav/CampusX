@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Award, CircleHelp, History, Trophy, UserRoundPen } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Award, CircleHelp, Crown, History, Trophy, UserRoundPen } from 'lucide-react';
 import { Link } from 'react-router';
 import { HowPointsWork } from '@/components/gamification/HowPointsWork';
 import { LeaderboardPodium } from '@/components/gamification/LeaderboardPodium';
@@ -13,6 +13,7 @@ import { ROUTES } from '@/constants/routes';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import { useAuthStore } from '@/store/authStore';
+import { useEliteStore } from '@/store/eliteStore';
 import { useRankingStore } from '@/store/rankingStore';
 
 function LeaderboardSkeleton() {
@@ -47,6 +48,9 @@ export default function RankingPage() {
   const myRanksStatus = useRankingStore((state) => state.myRanksStatus);
   const { forViewer, fetchLeaderboard, fetchMyRanks, loadMore } = useRankingStore.getState();
   const [rulesOpen, setRulesOpen] = useState(false);
+  // The elite tokens moved (a new ranking snapshot): show the new identities on the open leaderboard.
+  const eliteSeq = useEliteStore((state) => state.overview?.seq);
+  const shownSeq = useRef(eliteSeq);
 
   useEffect(() => {
     forViewer(userId);
@@ -55,6 +59,15 @@ export default function RankingPage() {
   useEffect(() => {
     fetchLeaderboard({ scope, period });
   }, [scope, period, userId]);
+  useEffect(() => {
+    if (eliteSeq === undefined || shownSeq.current === eliteSeq) return;
+    const first = shownSeq.current === undefined;
+    shownSeq.current = eliteSeq;
+    if (!first) {
+      fetchLeaderboard({ scope, period });
+      fetchMyRanks();
+    }
+  }, [eliteSeq]);
 
   const current = meta?.scope.id === scope && meta?.period.id === period;
   const rest = leaderboard.filter((entry) => entry.rank > 3);
@@ -68,6 +81,7 @@ export default function RankingPage() {
           <p className="mt-1 text-ink-muted">See where your campus journey takes you.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button as={Link} to={ROUTES.HALL_OF_FAME} variant="outline" size="sm" leftIcon={Crown}>Hall of Fame</Button>
           <Button as={Link} to={ROUTES.BADGES} variant="outline" size="sm" leftIcon={Award}>Badges</Button>
           <Button as={Link} to={ROUTES.POINT_ACTIVITY} variant="outline" size="sm" leftIcon={History}>Points history</Button>
           <Button variant="ghost" size="sm" leftIcon={CircleHelp} onClick={() => setRulesOpen(true)}>How points work</Button>

@@ -7,7 +7,7 @@ export function RecommendationSkeleton({ count = 4, label = 'Loading recommendat
       <div className="mb-3 h-6 w-48 animate-pulse rounded-lg bg-surface-muted" />
       <div className="-mx-4 flex gap-3 overflow-hidden px-4 sm:mx-0 sm:px-0">
         {Array.from({ length: count }, (_, index) => (
-          <div key={index} className="w-[80%] max-w-[19rem] shrink-0 rounded-3xl border border-line bg-surface p-4 sm:w-72" aria-hidden="true">
+          <div key={index} className="w-[80%] max-w-[19rem] shrink-0 glass-card rounded-3xl border border-line bg-surface p-4 sm:w-72" aria-hidden="true">
             <div className="flex gap-3">
               <div className="size-10 animate-pulse rounded-2xl bg-surface-muted" />
               <div className="flex-1 space-y-2">

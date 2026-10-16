@@ -15,7 +15,7 @@ const ACTION_TONES = { suspend: 'warning', block: 'danger', deactivate: 'danger'
 function Counter({ label, value }) {
   return (
     <div className="rounded-lg border border-ax-border bg-ax-bg-2/70 p-3">
-      <p className="font-mono text-[10px] tracking-[0.14em] text-ax-subtle uppercase">{label}</p>
+      <p className="admin-label text-ax-subtle">{label}</p>
       <p className="mt-1 font-display text-xl font-bold text-ax-text tabular-nums">{Number(value ?? 0).toLocaleString()}</p>
     </div>
   );
@@ -152,7 +152,7 @@ export default function AdminUserDetail() {
               { label: 'Signals', value: trust.flags.length ? trust.flags.map((flag) => flag.replace(/_/g, ' ')).join(', ') : 'None' },
             ]}
           />
-          <p className="mt-5 mb-2 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Cases about their content</p>
+          <p className="mt-5 mb-2 admin-label text-ax-subtle">Cases about their content</p>
           <ListOrEmpty items={contentCases} empty="No cases about their content.">
             {(item) => (
               <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
@@ -166,12 +166,12 @@ export default function AdminUserDetail() {
               </li>
             )}
           </ListOrEmpty>
-          <p className="mt-5 mb-3 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Account actions</p>
+          <p className="mt-5 mb-3 admin-label text-ax-subtle">Account actions</p>
           <AuditTimeline entries={moderationHistory} emptyText="No warnings, restrictions or status changes." />
         </AdminPanel>
 
         <AdminPanel label="Report history">
-          <p className="mb-2 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Reports they filed</p>
+          <p className="mb-2 admin-label text-ax-subtle">Reports they filed</p>
           <ListOrEmpty items={reports.filed} empty="None.">
             {(item) => (
               <li key={item.id} className="flex items-center justify-between gap-2 py-2 text-sm">
@@ -185,7 +185,7 @@ export default function AdminUserDetail() {
               </li>
             )}
           </ListOrEmpty>
-          <p className="mt-5 mb-2 font-mono text-[10px] tracking-[0.16em] text-ax-subtle uppercase">Reports about them or their content</p>
+          <p className="mt-5 mb-2 admin-label text-ax-subtle">Reports about them or their content</p>
           <ListOrEmpty items={reports.against} empty="None.">
             {(item) => (
               <li key={item.id} className="flex items-center justify-between gap-2 py-2 text-sm">

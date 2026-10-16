@@ -42,7 +42,7 @@ export function Toaster() {
               exit={{ opacity: 0, y: 8, scale: 0.97 }}
               transition={{ type: 'spring', damping: 30, stiffness: 380 }}
               data-toast={toast.type}
-              className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm font-medium text-ink shadow-lift"
+              className="glass-overlay pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border border-line bg-overlay px-4 py-3 text-sm font-medium text-ink shadow-lift"
             >
               <Icon className={cn('mt-0.5 size-4.5 shrink-0', className)} aria-hidden="true" />
               <p className="min-w-0 flex-1 break-words">{toast.message}</p>

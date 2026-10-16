@@ -134,7 +134,7 @@ export default function HomePage() {
                   seeAll={ROUTES.DISCOVER}
                   seeAllLabel="Discover more"
                   headingAs="h2"
-                  className="rounded-3xl border border-line bg-surface-muted/40 p-4"
+                  className="glass-card rounded-3xl border border-line bg-surface-muted/40 p-4"
                   renderItem={(item) => <RecommendationCard item={item} />}
                 />
               )}

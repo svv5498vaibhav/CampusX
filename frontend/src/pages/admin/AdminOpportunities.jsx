@@ -44,7 +44,7 @@ function Row({ opportunity, options, onStatus, onDelete, busy }) {
           {opportunity.title}
         </a>
         <p className="truncate text-sm text-ax-muted">{opportunity.organizer}</p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-ax-subtle">
+        <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ax-subtle tabular-nums">
           <span>{opportunity.applicationDeadline ? `Deadline ${formatShortDay(opportunity.applicationDeadline)}` : 'No deadline'}</span>
           <span className="inline-flex items-center gap-1">
             <Eye className="size-3.5" aria-hidden="true" /> {opportunity.views} views
@@ -127,7 +127,7 @@ export default function AdminOpportunities() {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        eyebrow="Campus management // Opportunities"
+        eyebrow="Campus management · Opportunities"
         title="Opportunity management"
         description="Internships, hackathons, scholarships, workshops and campus events, from draft to archive."
         actions={

@@ -45,7 +45,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        eyebrow="CampusX // Command center"
+        eyebrow="CampusX · Command center"
         title="Command center"
         description="Live counts from the CampusX database: students, content, reports and moderation."
         actions={

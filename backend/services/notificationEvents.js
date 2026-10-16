@@ -1,6 +1,6 @@
 import env from '../config/env.js';
 import { PUBLIC_STATUSES } from '../config/moderationConfig.js';
-import { BADGES, LEVELS } from '../data/gamificationOptions.js';
+import { BADGES, ELITE_TIERS, LEVELS } from '../data/gamificationOptions.js';
 import { OPPORTUNITY_UPDATE_FIELDS } from '../data/notificationOptions.js';
 import { LISTED_OPPORTUNITY_STATUSES } from '../data/opportunityOptions.js';
 import Achievement from '../models/Achievement.js';
@@ -306,6 +306,45 @@ export async function onRankMilestone({ userId, scope, tier, rank, scopeName }) 
   });
 }
 
+const tierInfo = (id) => ELITE_TIERS.find((tier) => tier.id === id) ?? null;
+
+/** Title and message for a change of elite rank (from → to: 'gold' | 'silver' | 'bronze' | null). */
+export function eliteRankMessage(previousTier, tier) {
+  const before = tierInfo(previousTier);
+  const now = tierInfo(tier);
+  // The token that went to someone else ("Your Golden Token has passed to the new champion.").
+  const passed = before && (!now || now.rank > before.rank)
+    ? before.id === 'gold' ? 'Your Golden Token has passed to the new champion.' : `Your ${before.token} has passed to a new holder.`
+    : null;
+  if (!now) {
+    return { title: `${before.token} passed on`, message: `${passed} Keep earning XP to win your place in the top three back.` };
+  }
+  if (now.id === 'gold') return { title: 'Golden Token claimed', message: 'You claimed the Golden Token! You are now CampusX Rank #1.' };
+  const where = `${now.title} — Rank #${now.rank}`;
+  if (!before) return { title: `${now.token} earned`, message: `You entered the top three and earned the ${now.token}! You are now ${where}.` };
+  if (passed) return { title: `Now ${now.title}`, message: `${passed} You are now ${where}.` };
+  return { title: `Now ${now.title}`, message: `You have moved to ${where}.` };
+}
+
+/**
+ * The student's elite rank token changed in a ranking snapshot (services/eliteRankService.js): gained,
+ * lost or swapped for another. One notification per snapshot (its number is in the dedupe key), so a
+ * snapshot that is processed again never notifies twice.
+ */
+export async function onEliteRankChanged({ userId, scope, seq, tier, previousTier }) {
+  if (!seq || tier === previousTier || (!tierInfo(tier) && !tierInfo(previousTier))) return;
+  const { title, message } = eliteRankMessage(previousTier, tier);
+  await createNotification({
+    recipient: userId,
+    type: 'ELITE_RANK_CHANGED',
+    title,
+    message,
+    entityType: 'hall-of-fame',
+    metadata: { scope, seq, tier: tier ?? null, previousTier: previousTier ?? null, rank: tierInfo(tier)?.rank ?? null },
+    dedupeKey: `elite:${scope}:${seq}`,
+  });
+}
+
 /** A security notice: if the student didn't change it themselves, they know straight away. */
 export async function onPasswordChanged(userId) {
   await createNotification({
@@ -463,6 +502,7 @@ export function registerNotificationListeners() {
   on(E.GAMIFICATION_LEVEL_REACHED, (p) => `student:${p.userId}`, (p) => onLevelReached(p.userId, p.level));
   on(E.GAMIFICATION_BADGES_EARNED, (p) => `student:${p.userId}`, (p) => onBadgesEarned(p.userId, p.badges));
   on(E.GAMIFICATION_RANK_MILESTONE, (p) => `student:${p.userId}`, (p) => onRankMilestone(p));
+  on(E.ELITE_RANK_CHANGED, (p) => `student:${p.userId}`, (p) => onEliteRankChanged(p));
   on(E.STUDENT_ONBOARDED, (p) => `student:${p.userId}`, (p) => onOnboarded(p.userId));
   on(E.AUTH_PASSWORD_CHANGED, (p) => `password:${p.userId}`, (p) => onPasswordChanged(p.userId));
   on(E.ANONYMOUS_POST_COMMENTED, (p) => `anonymous:${p.postId}`, (p) => onAnonymousComment(p.postId, p.commentId));

@@ -65,6 +65,15 @@ const env = Object.freeze({
     apiKey: process.env.CLOUDINARY_API_KEY || '',
     apiSecret: process.env.CLOUDINARY_API_SECRET || '',
   },
+  // Resume Builder's optional AI assistant (Google Gemini). Server side only: the key is never sent to the
+  // browser. Without GEMINI_API_KEY (or with RESUME_AI_ENABLED=false) the builder works without AI.
+  resumeAi: {
+    enabled: (process.env.RESUME_AI_ENABLED || 'true').toLowerCase() !== 'false',
+    apiKey: (process.env.GEMINI_API_KEY || '').trim(),
+    model: process.env.RESUME_AI_MODEL || 'gemini-3.5-flash-lite',
+    // Only for a proxy or a test stand-in; empty = the Gemini API.
+    baseUrl: process.env.GEMINI_BASE_URL || '',
+  },
   auth: {
     jwtSecret: jwtSecretFromEnv || developmentSecret(),
     isJwtSecretEphemeral: !jwtSecretFromEnv,

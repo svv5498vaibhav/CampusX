@@ -27,13 +27,13 @@ export function RiskRadar({ levels, caption = 'Active cases by risk level' }) {
           const filled = max ? Math.round((count / max) * CELLS) : 0;
           return (
             <li key={id} className="grid grid-cols-[6.5rem_1fr_2.5rem] items-center gap-3">
-              <span className="flex items-center gap-1.5 font-mono text-xs tracking-wider uppercase" style={{ color }}>
-                <Icon className="size-3.5" aria-hidden="true" />
+              <span className="admin-label flex items-center gap-1.5 text-ax-text">
+                <Icon className="size-3.5 shrink-0" style={{ color }} aria-hidden="true" />
                 {label}
               </span>
               <span className="flex h-3 gap-[2px]" aria-hidden="true">
                 {Array.from({ length: CELLS }, (_, index) => (
-                  <span key={index} className="h-full flex-1 rounded-[2px]" style={{ backgroundColor: index < filled ? color : 'var(--ax-chart-grid)', opacity: index < filled ? 0.35 + (0.65 * (index + 1)) / Math.max(1, filled) : 1 }} />
+                  <span key={index} className="h-full flex-1 rounded-[2px] transition-[background-color,opacity] duration-300" style={{ backgroundColor: index < filled ? color : 'var(--ax-chart-grid)', opacity: index < filled ? 0.35 + (0.65 * (index + 1)) / Math.max(1, filled) : 1 }} />
                 ))}
               </span>
               <span className="text-right font-mono text-sm font-semibold text-ax-text tabular-nums">{count}</span>
@@ -41,7 +41,7 @@ export function RiskRadar({ levels, caption = 'Active cases by risk level' }) {
           );
         })}
       </ul>
-      <p className="mt-3 font-mono text-[11px] text-ax-subtle">
+      <p className="mt-3 text-[11px] text-ax-subtle">
         {total} active {total === 1 ? 'case' : 'cases'} · Phase 13 risk scoring
       </p>
       <ChartTable caption={caption} columns={['Risk level', 'Active cases']} rows={LEVELS.map((level) => [level.label, String(values[level.id] ?? 0)])} />

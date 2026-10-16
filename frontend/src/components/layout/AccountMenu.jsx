@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, LogOut, ShieldCheck, ShieldHalf, UserRound } from 'lucide-react';
+import { FileText, KeyRound, LogOut, Palette, ShieldCheck, ShieldHalf, UserRound } from 'lucide-react';
 import { Link } from 'react-router';
 import { Avatar, Badge, Button, Modal } from '@/components/ui';
 import { ROLES } from '@/constants/auth';
@@ -60,11 +60,17 @@ export function AccountMenu() {
             </Badge>
           </div>
         </div>
-        <Link to={ROUTES.SAFETY} onClick={() => setIsOpen(false)} className="mt-4 flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">
+        <Link to={ROUTES.RESUME_BUILDER} onClick={() => setIsOpen(false)} className="mt-4 flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">
+          <FileText className="size-4" aria-hidden="true" /> Resume Builder
+        </Link>
+        <Link to={ROUTES.SAFETY} onClick={() => setIsOpen(false)} className="flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">
           <ShieldCheck className="size-4" aria-hidden="true" /> Community guidelines and your reports
         </Link>
         <Link to={`${ROUTES.PROFILE_EDIT}#password`} onClick={() => setIsOpen(false)} className="flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">
           <KeyRound className="size-4" aria-hidden="true" /> Change password
+        </Link>
+        <Link to={ROUTES.THEME_STUDIO} onClick={() => setIsOpen(false)} className="flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">
+          <Palette className="size-4" aria-hidden="true" /> Theme Studio
         </Link>
         {[ROLES.ADMIN, ROLES.MODERATOR].includes(user.role) && (
           <Link to={ROUTES.ADMIN} onClick={() => setIsOpen(false)} className="flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-primary hover:underline">

@@ -1,9 +1,13 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { Crown, Medal } from 'lucide-react';
 import { Link } from 'react-router';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
+import { RankTokenBadge } from '@/components/elite/RankTokenBadge';
 import { BadgeIcon } from '@/components/gamification/BadgeCard';
 import { campusLine } from '@/components/gamification/LeaderboardRow';
 import { Avatar } from '@/components/ui';
+import { eliteTierOf } from '@/constants/elite';
 import { formatPoints } from '@/constants/gamification';
 import { profilePath } from '@/constants/routes';
 import { cn } from '@/utils/cn';
@@ -21,6 +25,8 @@ function PodiumPlace({ entry, delay, youId }) {
   const place = PLACES[entry.rank] ?? PLACES[3];
   const PlaceIcon = place.icon;
   const isYou = entry.student.id === youId;
+  // Token holders show their elite frame and emblem instead of the place icon (the place is still shown).
+  const elite = eliteTierOf(entry.student.eliteRank);
   return (
     <motion.li
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
@@ -29,19 +35,25 @@ function PodiumPlace({ entry, delay, youId }) {
       className="flex min-w-0 flex-col items-center sm:justify-end"
       data-podium-rank={entry.rank}
     >
-      <div className="flex w-full items-center gap-3 rounded-3xl border border-line bg-surface p-3 shadow-soft sm:flex-col sm:gap-2 sm:rounded-b-none sm:border-b-0 sm:p-4 sm:text-center">
+      <div className="flex w-full items-center gap-3 glass-card rounded-3xl border border-line bg-surface p-3 shadow-soft sm:flex-col sm:gap-2 sm:rounded-b-none sm:border-b-0 sm:p-4 sm:text-center">
         <span className="w-7 shrink-0 text-center font-display text-sm font-bold text-ink-muted sm:hidden">#{entry.rank}</span>
         <div className="relative shrink-0">
-          <Avatar src={entry.student.avatarUrl} name={getFullName(entry.student)} size="lg" className={cn('ring-4', place.ring)} />
-          <span className={cn('absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full', place.block)} aria-hidden="true">
-            <PlaceIcon className="size-3.5" />
-          </span>
+          <EliteProfileFrame eliteRank={entry.student.eliteRank} size="lg">
+            <Avatar src={entry.student.avatarUrl} name={getFullName(entry.student)} size="lg" className={cn(!elite && ['ring-4', place.ring])} />
+          </EliteProfileFrame>
+          {!elite && (
+            <span className={cn('absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full', place.block)} aria-hidden="true">
+              <PlaceIcon className="size-3.5" />
+            </span>
+          )}
         </div>
         <div className="min-w-0 flex-1 sm:w-full">
           <Link to={profilePath(entry.student.id)} className="block truncate font-display font-bold text-ink hover:underline">
-            {getFullName(entry.student)}{isYou && <span className="ml-1 text-xs text-primary">(you)</span>}
+            <EliteRankName eliteRank={entry.student.eliteRank} shine>{getFullName(entry.student)}</EliteRankName>
+            {isYou && <span className="ml-1 text-xs text-primary">(you)</span>}
           </Link>
           <p className="truncate text-xs text-ink-muted">{campusLine(entry.student)}</p>
+          {elite && <RankTokenBadge eliteRank={entry.student.eliteRank} variant="compact" className="mt-1" />}
           <p className="mt-1 font-display text-lg font-bold text-ink">{formatPoints(entry.points)} <span className="text-xs font-semibold text-ink-subtle">XP</span></p>
           <div className="mt-1 flex items-center gap-1.5 sm:justify-center">
             <span className="rounded-lg bg-surface-muted px-2 py-0.5 text-[11px] font-bold text-ink-muted">Level {entry.level.level}</span>

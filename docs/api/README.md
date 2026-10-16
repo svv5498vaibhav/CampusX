@@ -666,6 +666,9 @@ user ids in a query are ignored.
 | `GET` | `/rankings/overall` · `/college` · `/branch` · `/semester` `?period&page&limit` | `period`: all (default), month, week. 20 per page, max 50. → `{ scope, period, leaderboard, pagination, currentUser: { rank, points } }`. Branch = your branch at your college; semester = your semester in that branch at that college |
 | `GET` | `/rankings/weekly` · `/rankings/monthly` | Campus-wide leaderboard for the current week / month |
 | `GET` | `/rankings/me` | `{ totalPoints, level, ranks: { overall, college, branch, semester }, weekly, monthly, badgeCount }` |
+| `GET` | `/rankings/elite` | Elite rank tokens now: `{ status: ready \| pending, seq, updatedAt, scope, tiers, holders: [{ tier, student, since, points, topThreeEntries }], you }`. `student` is null for an unclaimed token. Read-only: tokens move only by server-side ranking snapshots |
+| `GET` | `/rankings/hall-of-fame?page&limit` | The overview plus `previousHolders: { gold, silver, bronze }` (reigns: student or null for a former student, startedAt, endedAt, durationMs, reasons), `records: { longestGoldReign, mostTopThreeEntries }`, `totals`, `transfers` (newest first, 15 per page, max 50) and `pagination` |
+| `GET` | `/rankings/elite/students/:userId` | `{ current, reigns, stats: { topThreeEntries, reigns, bestTier, heldMs, longestReignMs } }`. 404 for unknown or inactive students |
 | `GET` | `/gamification/me` | Total and lifetime points, level (`level, name, currentLevelPoints, pointsToNextLevel, progressPercentage`), weekly/monthly points, streak, earned badges |
 | `GET` | `/gamification/transactions?page&limit` | Your own points ledger, newest first: award, reversal and reinstatement rows |
 | `GET` | `/gamification/badges` | Every badge with earned state, date and progress |
@@ -730,6 +733,7 @@ refreshes the token and reconnects. Events (server → client only):
 | `message:new` | `{ conversation, message }` to both participants, each from their own side (the sender's other tabs too) |
 | `conversation:read` | `{ conversationId, userId, lastReadId, lastReadAt }` to both participants ("Seen", other tabs) |
 | `message:unread-count` | `{ unreadCount }`: conversations with unread messages |
+| `elite:updated` | `{ seq, at }` to every signed-in connection: the Gold/Silver/Bronze holders changed in snapshot `seq` (no ids; read `GET /rankings/elite` again). The students whose rank changed also get an `ELITE_RANK_CHANGED` notification |
 
 Sockets only deliver what was already saved; the REST API above stays the source of truth.
 
@@ -887,6 +891,85 @@ of your current roadmap.`; a malformed id → 422.
 Phase 10 ledger (key `user:action:roadmap-semester:<n>`). Undoing a milestone or switching to a goal for which
 the semester is incomplete reverses it; completing it again reinstates the same award (never a second one).
 The first award also earns the **Pathfinder** badge. Single milestones earn nothing.
+
+## Resume Builder
+
+Every route requires a bearer token and works on the **signed-in student's own resumes** only: every query is
+filtered on the owner from the session, a resume that isn't the student's answers 404 exactly like one that
+doesn't exist, and owner/default/revision/export fields sent by a client are ignored. Students need a finished
+onboarding, otherwise 409. Resumes never appear in profiles, search, recommendations or admin views. Responses
+are `Cache-Control: no-store`. Limits per student: writes (autosave included) 400 per 10 minutes, checks 60 per
+10 minutes, AI suggestions 30 per hour (429 after that). Options and limits live in
+`backend/data/resumeOptions.js`.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET` | `/resumes/options` | Templates (10: six in the `fresher` category, four `general`), target roles, sections, accents, fonts, spacing, page modes, limits, skill suggestions, `ai: { available, provider, reason?, tasks }` |
+| `GET` | `/resumes` | `{ resumes: [summary], summary: { count, max: 20, defaultResume: { id, name, updatedAt } \| null, lastUpdatedAt } }`. Summaries carry no content |
+| `GET` | `/resumes/import` | "Import My CampusX Profile": `{ draft, student, found, skipped, missing, limits }`. Read-only; nothing is saved |
+| `POST` | `/resumes` | `{ targetRole, name?, customRole?, template?, content?, sections?, settings? }` → 201 `{ resume }`. The first resume becomes the default. Without `content`, only the student's name and account email are filled in. Without a name, "`<Role> Resume`" (with "(2)" etc. when taken); an explicit name already used → 409. A 21st resume → 409 |
+| `GET` | `/resumes/:resumeId` | `{ resume }` (malformed id → 422) |
+| `PATCH` | `/resumes/:resumeId` | Any of `name, targetRole, customRole, template, settings, sections, content`, plus the `revision` it is based on (required) and optional `markImported: true` → `{ resume }` with `revision + 1`. A different revision (another tab or device changed it) → 409 with `errors[0].field = "revision"`; nothing is overwritten |
+| `POST` | `/resumes/:resumeId/duplicate` | `{ name? }` → 201 copy ("Copy of …" by default), never the default, revision 0 |
+| `POST` | `/resumes/:resumeId/default` | Makes it the only default (revision unchanged) |
+| `DELETE` | `/resumes/:resumeId` | → `{ id, newDefaultId }`: deleting the default promotes the most recently edited resume |
+| `POST` | `/resumes/:resumeId/export` | The saved resume to build the PDF from; counts the download (`exportCount`, `lastExportedAt`) |
+| `POST` | `/resumes/:resumeId/analyze` | `{ jobDescription? (≤ 8000), pageCount? (1–20) }` → `{ report }` (the resume checker, below) |
+| `POST` | `/resumes/:resumeId/ai` | `{ task, text?, itemId?, summaryTitle?, jobDescription? }` → `{ result }` (the AI assistant, below) |
+
+**The resume object**: `id, name, targetRole, targetRoleLabel, customRole, template, isDefault, settings: { accent,
+font: sans | serif, density: compact | standard | relaxed, pageMode: multi | one }, sections: { order (all 11
+keys), hidden, titles, customOrder }, content, revision, importedAt, lastExportedAt, exportCount, createdAt,
+updatedAt`.
+
+**Content**: `personal { fullName, headline, email, phone, location, links[≤5]: { label, url } }`, `summary`,
+`education[≤5] { id, institution, degree, field, location, startDate, endDate, score, coursework[], details[] }`,
+`skills[≤8] { id, label, items[≤25] }`, `projects[≤8] { id, name, role, tech[], startDate, endDate, github, live,
+summary, bullets[≤6], source }`, `experience[≤6] { id, role, organization, location, startDate, endDate, bullets[],
+source }`, `achievements[≤10] { id, title, organization, date, description, source }`, `certifications[≤10] { id,
+name, issuer, date, url, source }`, `volunteering[≤4]`, `coursework[≤16]`, `custom[≤2] { id, title, items[≤6] }`.
+Only these fields are stored (anything else is dropped); strings are trimmed with length limits; dates are `YYYY`
+or `YYYY-MM` (end dates may be `present`); links must be http(s) with a real host name ("github.com/x" becomes
+`https://github.com/x`; `javascript:`, `localhost` and credentials → 422); email and phone are checked. Every list
+at its maximum with every field filled stays under the API's 500-key / 100 KB request screening. Errors are 422
+with one entry per field, e.g. `content.projects[2].github`. Changing the template brings that template's colour
+and font defaults where the old choice isn't offered, and its section order unless `sections.customOrder` is true.
+
+**Import rules**: only the student's own profile (name, account email, college, branch, the college's city,
+skills, bio), projects they own or accepted a team place on (any visibility; teammates are never named),
+achievements (hackathons, competitions and awards → achievements with their rank; certifications and workshops →
+certifications; internships → experience) and learning milestones completed on their Semester Roadmap (→
+coursework). Anything a moderator removed is left out, and so are achievements a moderator rejected (counted in
+`skipped`). Phone, links, degree name, dates and CGPA aren't stored on CampusX and stay empty (listed in
+`missing`). Description lines become bullet point candidates; nothing is invented.
+
+**The resume checker** (`report`): `{ checkedAt, score (0–100), label: Needs work | Good start | Strong, counts:
+{ fail, warn, pass, info }, checks: [{ category, id, status: fail | warn | pass | info, title, detail, target?: {
+step, itemId? } }], keywords: { found, matched, missing, coverage } | null, disclaimer }`. Plain rules, each with a
+reason: contact details and link format (local or private addresses, `http://`, LinkedIn pages that aren't
+profiles), education, projects and experience (experience is optional for freshers), skills (count, duplicates,
+skills common for the role as a tip), summary length, dates (reversed, future, open-ended, mixed styles), wording
+(vague phrases, repeated openings and phrases, very short or long bullets, first person), formatting (characters
+the PDF fonts can't draw, capitals, page count, empty sections, non-single-column templates) and, with a job
+description, known skills it mentions that the resume doesn't. It never promises ATS results, interviews or jobs,
+and only suggests adding a skill "where it is true".
+
+**The AI assistant** (optional, Google Gemini): available when the backend has `GEMINI_API_KEY` (and
+`RESUME_AI_ENABLED` isn't `false`); model `RESUME_AI_MODEL` (default `gemini-3.5-flash-lite`). Tasks: `summary` (improve or draft a summary or
+career objective; `summaryTitle` picks which), `bullets` (rewrite `text` as bullet points; `itemId` names the
+project or role), `grammar` (`text` required), `keywords` (`jobDescription` required) and `review`. Result: `{
+task, provider, model, suggestion? | bullets? | keywords? | suggestions?, notes, warnings }`. Only the resume's
+content is sent (never the name, email, phone, location or links); every number and every known technology in a
+suggestion that isn't in the student's resume is listed in `warnings`. Errors are plain messages without provider
+details: Gemini declining the text (safety) → 422; the Gemini quota used up (free tier, per minute or per day) →
+429 saying when to try again (quota errors are never retried, so they don't use up more quota); an invalid key,
+unknown model, Gemini outage (retried once), unreadable answer or no key configured → 503. Our own per-student
+limit (30 an hour) also answers 429. Nothing is saved: the student edits the suggestion, and accepting it goes
+through `PATCH`.
+
+**The PDF** is made in the browser from the copy `POST /export` returns, by the same layout code as the preview
+(`frontend/src/utils/resume`): A4, real selectable text in the standard PDF fonts (Helvetica, Times, Courier),
+clickable links, named `<Resume-Name>-Resume.pdf`.
 
 ## Follows and blocks
 

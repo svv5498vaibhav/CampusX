@@ -19,6 +19,7 @@ import Project from '../models/Project.js';
 import RecommendationFeedback from '../models/RecommendationFeedback.js';
 import RecommendationInteraction from '../models/RecommendationInteraction.js';
 import RecommendationProfile from '../models/RecommendationProfile.js';
+import Resume from '../models/Resume.js';
 import SearchHistory from '../models/SearchHistory.js';
 import Session, { REVOKE_REASONS } from '../models/Session.js';
 import StudentGamification from '../models/StudentGamification.js';
@@ -27,6 +28,7 @@ import User, { ACCOUNT_STATUSES } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { createKeyedLock } from '../utils/keyedQueue.js';
 import logger from '../utils/logger.js';
+import { supportsTransactions } from '../utils/transactions.js';
 import { setCache } from './cacheService.js';
 import { CAMPUS_EVENTS, emitCampusEvent } from './campusEvents.js';
 import { settled as gamificationSettled } from './gamificationEvents.js';
@@ -87,19 +89,8 @@ const lockKey = (id) => `account-deletion:${id}`;
 
 // ----------------------------------------------------------------------------- transactions
 
-let transactionSupport = null;
-
-/** Replica sets and sharded clusters (MongoDB Atlas) support transactions; a standalone server doesn't. */
-export async function supportsTransactions() {
-  if (transactionSupport !== null) return transactionSupport;
-  try {
-    const hello = await mongoose.connection.db.admin().command({ hello: 1 });
-    transactionSupport = Boolean(hello.setName) || hello.msg === 'isdbgrid';
-  } catch {
-    return false;
-  }
-  return transactionSupport;
-}
+// Replica sets and Atlas support transactions; a standalone server doesn't (utils/transactions.js).
+export { supportsTransactions };
 
 // ----------------------------------------------------------------------------- the purge
 
@@ -232,7 +223,7 @@ export async function purgeAccountData(userId, { session = null } = {}) {
   await recountComments(recorded?.affected?.commentedPosts, options);
   await Community.updateMany({ createdBy: id }, { $set: { createdBy: null } }, quiet);
 
-  // 7. Private records: tracking, roadmap, points, notifications (received, and caused for others: they quote
+  // 7. Private records: tracking, roadmap, resumes, points, notifications (received, and caused for others: they quote
   //    removed content and name a removed account), settings, search history, recommendation data, follows and
   //    blocks both ways, direct messages (before their conversations, so a repeat still finds them), sessions.
   const conversations = await Conversation.find({ participants: id }).select('_id').session(session).lean();
@@ -240,6 +231,7 @@ export async function purgeAccountData(userId, { session = null } = {}) {
   for (const [model, filter] of [
     [OpportunityApplication, { user: id }],
     [StudentRoadmapProgress, { user: id }],
+    [Resume, { owner: id }],
     [PointTransaction, { user: id }],
     [StudentGamification, { user: id }],
     [Notification, { $or: [{ recipient: id }, { actor: id }] }],

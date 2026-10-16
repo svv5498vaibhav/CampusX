@@ -24,7 +24,7 @@ export function AuthShell({ title, subtitle, panelTitle, panelText, footer, chil
     <PageContainer width="wide" spacing="none" className="py-6 sm:py-10 lg:py-14">
       <div className="mx-auto grid max-w-5xl overflow-hidden rounded-[2rem] border border-line bg-surface shadow-lift lg:grid-cols-[0.95fr_1.05fr]">
         {/* Brand green in light mode; deep green with green accents in dark mode. */}
-        <aside className="relative hidden flex-col justify-between gap-10 overflow-hidden bg-primary p-10 text-primary-fg lg:flex dark:border-r dark:border-line dark:bg-leaf-950 dark:text-ink">
+        <aside className="glass-cover relative hidden flex-col justify-between gap-10 overflow-hidden bg-primary p-10 text-primary-fg lg:flex dark:border-r dark:border-line dark:bg-leaf-950 dark:text-ink">
           <div className="pointer-events-none absolute inset-0" style={PANEL_DOTS} aria-hidden="true" />
           <div className="relative flex items-center gap-2.5">
             <LogoMark inverse className="size-9" />

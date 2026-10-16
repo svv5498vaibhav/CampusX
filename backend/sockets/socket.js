@@ -74,6 +74,15 @@ export function emitToUser(userId, event, payload) {
 }
 
 /**
+ * Sends an event to every signed-in connection. Only for public, id-free signals (e.g. "the elite rank
+ * holders changed: reload them"); anything about one student goes to their room with emitToUser().
+ */
+export function broadcast(event, payload) {
+  if (!io) return;
+  io.emit(event, payload);
+}
+
+/**
  * Re-checks every connection in the staff room against the database: the account must still be an
  * active moderator or admin and its session still live. A demoted account leaves the room (it keeps its
  * own notifications); a suspended account or an ended session is disconnected. Role changes made by

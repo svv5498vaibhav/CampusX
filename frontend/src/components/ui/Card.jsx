@@ -7,8 +7,9 @@ const PADDING = {
   lg: 'p-6 sm:p-8',
 };
 
+// glass-card / glass-reflect: Aurora Glass sheen and hover reflection (no-ops in Campus themes).
 const TONES = {
-  default: 'border-line bg-surface shadow-soft',
+  default: 'glass-card border-line bg-surface shadow-soft',
   muted: 'border-transparent bg-surface-muted',
 };
 
@@ -27,7 +28,7 @@ export function Card({
         TONES[tone],
         PADDING[padding],
         interactive &&
-          'transition-[transform,box-shadow,border-color] duration-300 ease-campus hover:-translate-y-0.5 hover:border-line-strong hover:shadow-lift',
+          'glass-reflect transition-[transform,box-shadow,border-color] duration-300 ease-campus hover:-translate-y-0.5 hover:border-line-strong hover:shadow-lift motion-reduce:hover:translate-y-0',
         className,
       )}
       {...props}

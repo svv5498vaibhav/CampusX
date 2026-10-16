@@ -338,7 +338,7 @@ export function OpportunityForm({ opportunity = null, onSaved, onCancel }) {
         </label>
       </Section>
 
-      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 flex flex-wrap justify-end gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
+      <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 flex flex-wrap justify-end gap-3 rounded-2xl border border-line bg-overlay/95 p-3 shadow-lift backdrop-blur-md md:bottom-4">
         <Button variant="ghost" onClick={onCancel} disabled={Boolean(saving)}>Cancel</Button>
         {creating ? (
           <>

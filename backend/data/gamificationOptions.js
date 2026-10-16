@@ -130,6 +130,45 @@ export const TIE_BREAKERS = Object.freeze(['points', 'verifiedAchievements', 're
  */
 export const RANK_MILESTONES = Object.freeze({ scopes: ['overall', 'college'], tiers: [10, 3, 1], minStudents: 5 });
 
+/**
+ * Elite rank tokens: the Gold, Silver and Bronze tokens belong to whoever holds #1, #2 and #3 on ONE
+ * leaderboard, the CampusX-wide all-time ranking (`scope`), using exactly its rules (eligible students with
+ * points, TIE_BREAKERS). They are never chosen, claimed or changed by a request: services/eliteRankService.js
+ * takes a ranking snapshot on the server after points change (and every `refreshEveryMinutes` as a safety
+ * net) and moves the tokens when the top three changed. With fewer than three ranked students the lower
+ * tokens stay unclaimed. Every change is kept as history (the Hall of Fame).
+ *
+ * The overall #1 and top-3 ranking milestones above are still recorded, but announced by the token
+ * notification instead, so reaching #1 isn't announced twice.
+ */
+export const ELITE_TIERS = Object.freeze([
+  { id: 'gold', rank: 1, title: 'Golden Champion', token: 'Golden Token', short: 'Gold', emblem: 'crown' },
+  { id: 'silver', rank: 2, title: 'Silver Elite', token: 'Silver Token', short: 'Silver', emblem: 'shield' },
+  { id: 'bronze', rank: 3, title: 'Bronze Elite', token: 'Bronze Token', short: 'Bronze', emblem: 'shield' },
+]);
+export const ELITE_TIER_IDS = Object.freeze(ELITE_TIERS.map((tier) => tier.id));
+
+export const ELITE_RANK_RULES = Object.freeze({
+  scope: 'overall',
+  period: 'all',
+  // Point changes that land within this window are settled by one snapshot.
+  refreshDelayMs: 1200,
+  // The safety net: a snapshot this often even without point changes (suspended or deleted accounts,
+  // other API instances, changes made directly in the database).
+  refreshEveryMinutes: 5,
+  // How long one API instance reuses the current holders before reading them again.
+  holdersCacheSeconds: 5,
+  hallOfFame: { previousHolders: 10, records: 5, transfers: { default: 15, max: 50 } },
+});
+
+/**
+ * Why a token moved (stored on each transfer and reign):
+ *   first-snapshot  the first time CampusX handed out the tokens
+ *   ranking         the leaderboard changed (someone overtook, or a holder moved up or down)
+ *   left-rankings   the holder left the rankings (account suspended or closed, or no points any more)
+ */
+export const ELITE_TRANSFER_REASONS = Object.freeze(['first-snapshot', 'ranking', 'left-rankings']);
+
 export const GAMIFICATION_RULES = Object.freeze({
   leaderboardPageSize: { default: 20, max: 50 },
   transactionPageSize: { default: 20, max: 50 },

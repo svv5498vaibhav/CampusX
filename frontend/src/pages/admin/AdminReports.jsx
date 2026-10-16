@@ -103,7 +103,7 @@ function ReportQueue() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader eyebrow="Moderation // Reports" title="Report management" description="Every report students filed, one at a time. Reporters are never identified, and closing a report tells them the outcome." />
+      <AdminPageHeader eyebrow="Moderation · Reports" title="Report management" description="Every report students filed, one at a time. Reporters are never identified, and closing a report tells them the outcome." />
       <AdminPanel label="Report queue" bodyClassName="space-y-4">
         <AdminTabs label="Report status" tabs={tabs} value={filters.status} onChange={(status) => set({ status })} />
         <FilterBar>

@@ -2,13 +2,15 @@ import { useEffect } from 'react';
 import { SOCKET_EVENTS } from '@/constants/notifications';
 import { connectSocket, disconnectSocket, onSocketStatus } from '@/services/socket';
 import { useAuthStore } from '@/store/authStore';
+import { useEliteStore } from '@/store/eliteStore';
 import { useFollowStore } from '@/store/followStore';
 import { useMessageStore } from '@/store/messageStore';
 import { useNotificationStore } from '@/store/notificationStore';
 
 /**
  * Live updates for the signed-in student: loads the unread counts (notifications and messages), opens this
- * tab's single Socket.IO connection and feeds its events into the notification, follow and message stores.
+ * tab's single Socket.IO connection and feeds its events into the notification, follow, message and elite
+ * rank stores.
  * Mounted once, in the campus layout. Logging out (or switching accounts) closes the connection and clears
  * the stores. Sockets only deliver: after a dropped connection everything is reloaded from the REST API.
  */
@@ -34,6 +36,7 @@ export function useNotificationsSocket() {
       if (connectedBefore) {
         store().resync();
         messages().resync();
+        useEliteStore.getState().fetchOverview();
       }
       connectedBefore = true;
     });
@@ -49,6 +52,7 @@ export function useNotificationsSocket() {
       [SOCKET_EVENTS.MESSAGE_NEW]: (payload) => messages().applyNewMessage(payload),
       [SOCKET_EVENTS.CONVERSATION_READ]: (payload) => messages().applyRead(payload),
       [SOCKET_EVENTS.MESSAGE_UNREAD_COUNT]: (payload) => messages().applyUnreadCount(payload),
+      [SOCKET_EVENTS.ELITE_RANKS_UPDATED]: (payload) => useEliteStore.getState().applyRemoteUpdate(payload),
     };
     Object.entries(handlers).forEach(([event, handler]) => socket.on(event, handler));
 

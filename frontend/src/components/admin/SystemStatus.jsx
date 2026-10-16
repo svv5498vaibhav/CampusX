@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import { useAdminStore } from '@/store/adminStore';
 import { formatRelativeTime } from '@/utils/time';
 import { cn } from '@/utils/cn';
+import { TerminalLabel } from './AdminUi';
 
 /*
  * Live system status, as the server reports it (GET /admin/system-status, falling back to the public
@@ -24,9 +25,9 @@ const STATES = {
 };
 
 const DOTS = {
-  ok: 'bg-ax-success shadow-[0_0_8px_var(--ax-success)]',
-  warn: 'bg-ax-warning shadow-[0_0_8px_var(--ax-warning)]',
-  down: 'bg-ax-danger shadow-[0_0_8px_var(--ax-danger)]',
+  ok: 'bg-ax-success ring-3 ring-ax-success/20',
+  warn: 'bg-ax-warning ring-3 ring-ax-warning/20',
+  down: 'bg-ax-danger ring-3 ring-ax-danger/20',
   idle: 'bg-ax-subtle',
 };
 
@@ -36,7 +37,7 @@ function Row({ name, value }) {
     <li className="flex items-center justify-between gap-3">
       <span className="flex items-center gap-2">
         <span aria-hidden="true" className={cn('size-2 rounded-full', DOTS[state.tone], state.tone === 'ok' && 'motion-safe:animate-pulse')} />
-        <span className="font-mono text-[11px] tracking-[0.14em] text-ax-text uppercase">{name}</span>
+        <span className="font-mono text-[11px] tracking-[0.08em] text-ax-text uppercase">{name}</span>
       </span>
       <span className={cn('text-right text-[11px]', state.tone === 'down' ? 'text-ax-danger' : state.tone === 'warn' ? 'text-ax-warning' : 'text-ax-muted')}>{state.label}</span>
     </li>
@@ -61,11 +62,9 @@ export function SystemStatus({ compact = false, className }) {
   const refreshSystem = useAdminStore((state) => state.refreshSystem);
 
   return (
-    <section aria-label="System status" className={cn('rounded-xl border border-ax-border bg-ax-bg/60 p-3', className)}>
+    <section aria-label="System status" className={cn('rounded-xl border border-ax-border bg-ax-bg-2 p-3', className)}>
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <p className="font-mono text-[10px] font-semibold tracking-[0.2em] text-ax-muted uppercase">
-          <span className="text-ax-neon">//</span> System status
-        </p>
+        <TerminalLabel className="text-[10px]">System status</TerminalLabel>
         <button type="button" onClick={refreshSystem} className="grid size-6 place-items-center rounded text-ax-subtle hover:text-ax-text" aria-label="Check system status again">
           <RefreshCw className="size-3.5" aria-hidden="true" />
         </button>

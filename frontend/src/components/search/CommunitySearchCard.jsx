@@ -34,7 +34,7 @@ export function CommunitySearchCard({ community, headingLevel = 'h3', reason, me
   };
 
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="community" data-community-id={community.id}>
+    <article className="flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift" data-search-result="community" data-community-id={community.id}>
       <div className="flex items-start gap-3">
         <CommunityIcon community={community} size="md" />
         <div className="min-w-0 flex-1">

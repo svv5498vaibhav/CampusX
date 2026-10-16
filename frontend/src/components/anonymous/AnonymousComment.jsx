@@ -142,7 +142,7 @@ export function AnonymousComments({ post }) {
   }, [post.id]);
 
   return (
-    <section aria-labelledby="anon-comments-title" className="rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5">
+    <section aria-labelledby="anon-comments-title" className="glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft sm:p-5">
       <h2 id="anon-comments-title" className="font-display text-lg font-bold text-ink">
         Comments <span className="text-sm font-semibold text-ink-subtle">{post.commentCount}</span>
       </h2>

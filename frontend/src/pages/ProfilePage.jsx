@@ -5,6 +5,7 @@ import { CampusJourneyCard } from '@/components/gamification/CampusJourneyCard';
 import { DangerZoneCard } from '@/components/profile/DangerZoneCard';
 import { ImageUploadDialog } from '@/components/profile/ImageUploadDialog';
 import { ProfileView } from '@/components/profile/ProfileView';
+import { ResumeProfileCard } from '@/components/resume/ResumeProfileCard';
 import { RoadmapProfileCard } from '@/components/roadmap/RoadmapProfileCard';
 import { FollowListModal } from '@/components/social/FollowListModal';
 import { FollowStats } from '@/components/social/FollowStats';
@@ -75,7 +76,12 @@ export default function ProfilePage() {
         onChangePhoto={() => setDialog('avatar')}
         onChangeCover={() => setDialog('cover')}
         renderAside={(theme, headingAs) => <CampusJourneyCard theme={theme} headingAs={headingAs} />}
-        banner={<RoadmapProfileCard />}
+        banner={
+          <div className="grid gap-4 xl:grid-cols-2">
+            <RoadmapProfileCard />
+            <ResumeProfileCard />
+          </div>
+        }
         stats={<FollowStats userId={profile.id} onOpen={openList} />}
         onCompletionAction={(item) => (item === 'photo' ? setDialog('avatar') : goToEditor(EDIT_SECTION[item]))}
         actions={

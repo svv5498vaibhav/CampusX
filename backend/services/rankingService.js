@@ -1,6 +1,6 @@
-import { BADGES, GAMIFICATION_RULES, RANK_MILESTONES, RANKING_PERIODS, RANKING_SCOPES } from '../data/gamificationOptions.js';
+import { BADGES, ELITE_RANK_RULES, ELITE_TIERS, GAMIFICATION_RULES, RANK_MILESTONES, RANKING_PERIODS, RANKING_SCOPES } from '../data/gamificationOptions.js';
 import StudentGamification from '../models/StudentGamification.js';
-import User from '../models/User.js';
+import User, { ACCOUNT_STATUSES } from '../models/User.js';
 import { periodsOf } from '../utils/periods.js';
 import { getCache, setCache } from './cacheService.js';
 import { CAMPUS_EVENTS, emitCampusEvent } from './campusEvents.js';
@@ -29,6 +29,12 @@ const PERIOD_FIELDS = {
   month: { points: 'monthlyPoints', reachedAt: 'monthlyReachedAt', match: (period) => ({ monthKey: period.month }) },
   week: { points: 'weeklyPoints', reachedAt: 'weeklyReachedAt', match: (period) => ({ weekKey: period.week }) },
 };
+
+/** The leaderboard order (TIE_BREAKERS): points, verified achievements, reached first, account id. */
+const orderOf = (fields) => ({ [fields.points]: -1, verifiedAchievements: -1, [fields.reachedAt]: 1, user: 1 });
+
+/** Accounts that were suspended or closed leave the rankings for good (until they are active again). */
+const leaveRankings = (userIds) => StudentGamification.updateMany({ user: { $in: userIds } }, { $set: { eligible: false } });
 
 /** The filter for a scope from the student's own profile, or null when their profile lacks it. */
 function scopeFilter(scope, viewer) {
@@ -98,7 +104,7 @@ async function leaderboardPage(match, fields, { page, limit, cacheKey }) {
   const skip = (page - 1) * limit;
   const [rows, total] = await Promise.all([
     StudentGamification.find(match)
-      .sort({ [fields.points]: -1, verifiedAchievements: -1, [fields.reachedAt]: 1, user: 1 })
+      .sort(orderOf(fields))
       .skip(skip)
       .limit(limit)
       .select(`user totalPoints ${fields.points} verifiedAchievements badges`)
@@ -108,10 +114,7 @@ async function leaderboardPage(match, fields, { page, limit, cacheKey }) {
   // Public summaries only (name, photo, college, branch, semester); inactive accounts have none.
   const students = await getStudentSummaries(rows.map((row) => row.user));
   const gone = rows.filter((row) => !students.has(row.user.toString())).map((row) => row.user);
-  if (gone.length) {
-    // Accounts that were suspended or closed leave the rankings for good (until they are active again).
-    await StudentGamification.updateMany({ user: { $in: gone } }, { $set: { eligible: false } });
-  }
+  if (gone.length) await leaveRankings(gone);
   const entries = rows
     .map((row, index) => ({ row, rank: skip + index + 1 }))
     .filter(({ row }) => students.has(row.user.toString()))
@@ -130,6 +133,38 @@ async function leaderboardPage(match, fields, { page, limit, cacheKey }) {
   const result = { entries, total };
   await setCache(key, result, GAMIFICATION_RULES.cacheSeconds);
   return result;
+}
+
+/**
+ * The top `limit` students of a whole leaderboard (no viewer scope: the elite rank tokens use the CampusX-wide
+ * all-time one), by exactly the leaderboard's rules: eligible students with points, in the leaderboard order.
+ * Always read from the database (never the page cache). Inactive accounts leave the rankings on the way, as
+ * they do on leaderboard pages, and the next students move up. Throws if the database can't answer, so a
+ * failed read is never mistaken for an empty leaderboard.
+ *   [{ rank, user, points, verifiedAchievements, reachedAt }]
+ */
+export async function topOfLeaderboard({ period = ELITE_RANK_RULES.period, limit = ELITE_TIERS.length } = {}) {
+  const fields = PERIOD_FIELDS[period];
+  const match = { eligible: true, ...fields.match(periodsOf()), [fields.points]: { $gt: 0 } };
+  const batch = limit + 5;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const rows = await StudentGamification.find(match).sort(orderOf(fields)).limit(batch).select(`user ${fields.points} verifiedAchievements ${fields.reachedAt}`).lean();
+    const active = new Set((await User.find({ _id: { $in: rows.map((row) => row.user) }, status: ACCOUNT_STATUSES.ACTIVE }).select('_id').lean()).map((user) => user._id.toString()));
+    const gone = rows.filter((row) => !active.has(row.user.toString())).map((row) => row.user);
+    const ranked = rows.filter((row) => active.has(row.user.toString()));
+    if (gone.length) await leaveRankings(gone);
+    // Enough students, or the whole leaderboard was read: done. Otherwise read again without the ones who left.
+    if (ranked.length >= limit || rows.length < batch) {
+      return ranked.slice(0, limit).map((row, index) => ({
+        rank: index + 1,
+        user: row.user,
+        points: row[fields.points],
+        verifiedAchievements: row.verifiedAchievements ?? 0,
+        reachedAt: row[fields.reachedAt] ?? null,
+      }));
+    }
+  }
+  throw new Error('the top of the leaderboard kept changing while it was read');
 }
 
 /** A leaderboard page plus the viewer's own position in it. */
@@ -186,7 +221,8 @@ export async function getMyRanks(viewer) {
 /**
  * After a student gains points: records any ranking milestone (RANK_MILESTONES) that beats their best on
  * the CampusX or college all-time leaderboard, using the same ranking rules as the leaderboards, and
- * announces it (a notification follows). Never called with a rank that went down.
+ * announces it (a notification follows). Never called with a rank that went down. CampusX-wide #1 and
+ * top 3 are recorded but not announced here: the elite rank token notification says it (once, not twice).
  */
 export async function checkRankMilestones(userId) {
   const [student, record] = await Promise.all([User.findById(userId).select('college branch semester').lean(), loadRecord(userId)]);
@@ -203,7 +239,8 @@ export async function checkRankMilestones(userId) {
     const tier = [...RANK_MILESTONES.tiers].sort((a, b) => a - b).find((size) => rank <= size && ranked > size);
     if (!tier) continue;
     const leaderboard = scope === 'overall' ? 'overall' : `${scope}:${student.college}`;
-    if (await recordRankMilestone(student._id, leaderboard, tier)) {
+    const announcedByToken = scope === ELITE_RANK_RULES.scope && tier <= ELITE_TIERS.length;
+    if ((await recordRankMilestone(student._id, leaderboard, tier)) && !announcedByToken) {
       reached.push({ scope, tier, rank, scopeName: await scopeLabel(scope, student) });
     }
   }

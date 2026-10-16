@@ -12,7 +12,7 @@ export function ProjectMedia({ images, title }) {
 
   return (
     <section aria-label="Project images" className="flex flex-col gap-2">
-      <div className="relative overflow-hidden rounded-3xl border border-line bg-surface-muted">
+      <div className="relative overflow-hidden glass-card rounded-3xl border border-line bg-surface-muted">
         {failed[current.id] ? (
           <div className="grid aspect-video place-items-center text-sm text-ink-subtle">
             <span className="inline-flex items-center gap-2"><ImageOff className="size-4" aria-hidden="true" /> Image unavailable</span>

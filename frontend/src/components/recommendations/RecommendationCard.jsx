@@ -1,6 +1,8 @@
 import { EyeOff } from 'lucide-react';
 import { Link } from 'react-router';
 import { PostMenu } from '@/components/feed/PostMenu';
+import { EliteProfileFrame } from '@/components/elite/EliteProfileFrame';
+import { EliteRankName } from '@/components/elite/EliteRankName';
 import { Avatar, Button } from '@/components/ui';
 import { memberCountLabel } from '@/constants/communities';
 import { formatDay } from '@/constants/opportunities';
@@ -78,10 +80,12 @@ export function RecommendationCard({ item, headingLevel = 'h3', className }) {
 
   return (
     <RecommendationLink item={item}>
-      <div className={cn('flex h-full flex-col rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift', className)}>
+      <div className={cn('flex h-full flex-col glass-card rounded-3xl border border-line bg-surface p-4 shadow-soft transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-lift', className)}>
         <div className="flex items-start gap-3">
           {item.recommendationType === T.STUDENTS ? (
-            <Avatar src={item.avatarUrl} name={title} size="md" shape="circle" />
+            <EliteProfileFrame eliteRank={item.eliteRank} size="md" shape="circle">
+              <Avatar src={item.avatarUrl} name={title} size="md" shape="circle" />
+            </EliteProfileFrame>
           ) : (
             <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary-soft-fg" aria-hidden="true">
               <Icon className="size-5" />
@@ -90,7 +94,9 @@ export function RecommendationCard({ item, headingLevel = 'h3', className }) {
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold tracking-wide text-primary uppercase">{item.anonymous ? 'Anonymous discussion' : meta.kind}</p>
             <Heading className="mt-0.5 line-clamp-2 font-display text-[15px] leading-snug font-bold break-words text-ink">
-              <Link to={path} className="hover:underline">{title}</Link>
+              <Link to={path} className="hover:underline">
+                {item.recommendationType === T.STUDENTS ? <EliteRankName eliteRank={item.eliteRank}>{title}</EliteRankName> : title}
+              </Link>
             </Heading>
             {subtitle && <p className="mt-0.5 truncate text-xs text-ink-muted">{subtitle}</p>}
           </div>

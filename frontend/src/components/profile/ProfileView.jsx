@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { FolderKanban, Sparkles, Trophy, UserRound, Wrench } from 'lucide-react';
 import { Link } from 'react-router';
+import { EliteRankHistory } from '@/components/elite/EliteRankHistory';
 import { themeStyles } from '@/constants/profileThemes';
 import { ROUTES } from '@/constants/routes';
 import { ProfileCompletionCard } from './ProfileCompletionCard';
@@ -50,6 +51,8 @@ export function ProfileView({
   celebrateAt,
   // Optional ⋮ menu for the header (another student's profile: Report, Block).
   menu,
+  // Elite rank history (Gold/Silver/Bronze tokens held); off in the editor's live preview.
+  showEliteHistory = true,
 }) {
   const theme = themeStyles(profile.theme);
   const sectionHeading = headingAs === 'h1' ? 'h2' : 'h3';
@@ -123,6 +126,7 @@ export function ProfileView({
 
         <div className={completion ? 'flex flex-col gap-6 @3xl:col-start-2 @3xl:row-start-2' : 'flex flex-col gap-6 @3xl:col-start-2 @3xl:row-span-2 @3xl:row-start-1'}>
           {renderAside?.(theme, sectionHeading)}
+          {showEliteHistory && <EliteRankHistory userId={profile.id} theme={theme} headingAs={sectionHeading} />}
           <ProfileSection icon={Wrench} title="Skills" theme={theme} headingAs={sectionHeading}>
             {profile.skills.length > 0 ? (
               <TagList items={profile.skills} theme={theme} />
